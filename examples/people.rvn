@@ -17,7 +17,7 @@ function genderToString(gender: Gender) string {
 }
 
 function main() int {
-  let people: [string, Person] = {
+  let people: {string, Person} = {
     "Ben": new Person("Ben", 32, .Male),
     "Amanda": new Person("Amanda", 23, .Female),
     "Timmy": new Person("Timmy", 8, .Male)

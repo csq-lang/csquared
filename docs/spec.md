@@ -26,10 +26,8 @@ These are all primitive types + some basic structural types in Raven:
 - **Numeric**: various types representing any numeric value, which can be a integer (`int`) or floating-point number (`float`). Integers can be *signed* (`int`) or *unsigned* (`uint`). All numeric types can have an optional bit-size: 8, 16, 32 or 64, with the default one being 32.
 - **Boolean** (`boolean`): type consisting of only the `true` and `false` literals. An integer can be converted into a boolean (`1` = `true`, `0` = `false`) and viceversa.
 - **Void** (`void`): represents **absence of a returned value in functions**. Not to be confused with `None` types of other languages, which represent **absence of value**.
-- **Array** (`[T]`): represents a list of elements sharing a unique type.
-- **Map** (`[K, V]`): represents a list of key-value pairs sharing unique key and value types.
-> Note that the map's type expression `[K, V]` will most likely change to `{K, V}` in order to remove possible confussion with arrays and make it easier for implementation of different type expressions.
-> This change also implies that map literals will change to `{"example": 3}` from `["example": 3]`.
+- **Array** (`[T]`): represents a list of elements sharing a type.
+- **Map** (`{K, V}`): represents a list of key-value pairs sharing key and value types.
 
 Functions in Raven are first-class, which means that functions have their own type (`(A...)R`) and have a literal:
 ```
