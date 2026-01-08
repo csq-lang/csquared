@@ -418,10 +418,10 @@ repeat 6 {
 ```
 
 ### Defer
-Defer is a very simple statement which will just delay the execution of a block to the end of the parent block. Defers are evaluated in opposite order.
+Defer is a very simple statement which will just delay the execution of a line/block to the end of the parent block. Defers are evaluated in opposite order.
 ```
 function main() int {
-  defer print("I'll win!")
+  defer print("I already won!")
   defer print("See you at the end!")
 
   return 0;
@@ -430,7 +430,7 @@ function main() int {
 *Output:*
 ```
 See you at the end!
-I'll win!
+I already won!
 ```
 
 > Defers are extremely useful for cleaner blocks, as all boilerplate can be written at the start, so all that's next is the actual code and not mandatory boilerplate.
@@ -445,6 +445,14 @@ If return is used in a void function, a compile error is thrown. If code is writ
 Throw will stop execution of code (unless ran inside of a [try-catch statement](spec#Try-catch)) and throw an error.
 
 Any expression can be passed to throw, which will convert it into a string and use it as the error message.
+> I see this as too unsafe and limiting: what if the user tries to pass a structure as an error thinking it may work? What if the user wants to define a structure to use as their own "error" type, but can't directly pass the error and has to convert it into a string?\\
+> Have to reconsider.
 
 ### Try-catch
 Try-catch will safely run a block, and allow the user to access the error and handle it in the desired way (simply ignoring it, printing it, using a user-defined error handler, etc.).
+
+# 3. Syntax
+
+Grammar:
+**TODO**
+
