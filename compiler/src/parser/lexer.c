@@ -121,6 +121,7 @@ token_list_t *lex(const char *source) {
       while (c != '\n' && c != '\r') {
         SKIP_CHAR_IF_INBOUNDS;
       }
+      line++;
       continue;
     }
 
