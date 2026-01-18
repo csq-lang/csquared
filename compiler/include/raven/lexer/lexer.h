@@ -38,6 +38,8 @@ typedef enum {
   T_SELF,
   T_OR,
   T_AND,
+  T_TRUE,
+  T_FALSE,
 
   T_PUNCTUATION,
   T_OPERATOR,

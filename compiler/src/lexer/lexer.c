@@ -95,7 +95,7 @@ int is_op_char(char c) {
   return 0;
 }
 
-const keyword_t keywords[28] = {
+const keyword_t keywords[30] = {
     {"function", T_FUNCTION}, {"if", T_IF},         {"else", T_ELSE},
     {"switch", T_SWITCH},     {"case", T_CASE},     {"default", T_DEFAULT},
     {"while", T_WHILE},       {"for", T_FOR},       {"return", T_RETURN},
@@ -104,7 +104,8 @@ const keyword_t keywords[28] = {
     {"import", T_IMPORT},     {"new", T_NEW},       {"repeat", T_REPEAT},
     {"until", T_UNTIL},       {"defer", T_DEFER},   {"try", T_TRY},
     {"catch", T_CATCH},       {"spawn", T_SPAWN},   {"private", T_PRIVATE},
-    {"self", T_SELF},         {"or", T_OR},         {"and", T_AND}};
+    {"self", T_SELF},         {"or", T_OR},         {"and", T_AND},
+    {"true", T_TRUE},         {"false", T_FALSE}};
 
 token_list_t *lex(const char *source) {
   int source_len = strlen(source);
@@ -204,7 +205,7 @@ token_list_t *lex(const char *source) {
         SKIP_CHAR_IF_INBOUNDS;
       }
 
-      for (size_t j = 0; j <= 26; j++) {
+      for (size_t j = 0; j <= 27; j++) {
         if (strcmp(keywords[j].word, id) == 0) {
           append_to_token_list(
               tokens, new_token(id, keywords[j].assigned_type, line, col));
@@ -288,6 +289,8 @@ void _display_token(token_t *token) {
 
   // P.S.: all cases below were made with a Vim macro, don't worry about my
   // fingers/sanity.
+  // I have to handle this in other way later, but if it works don't break it, I
+  // guess.
   case T_FUNCTION:
     type_str = "Function";
     break;
@@ -370,6 +373,12 @@ void _display_token(token_t *token) {
     break;
   case T_AND:
     type_str = "And";
+    break;
+  case T_TRUE:
+    type_str = "True";
+    break;
+  case T_FALSE:
+    type_str = "False";
     break;
   }
   printf("Text: " GRN "%s" CRESET ", type: " BLU "%s" CRESET ", position: " MAG

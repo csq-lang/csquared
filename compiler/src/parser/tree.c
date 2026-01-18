@@ -1,13 +1,14 @@
+#include <stdio.h>
 #include <stdlib.h>
 
+#include "raven/error.h"
 #include "raven/parser/tree.h"
 
-tree_t *new_tree(nodetype_t type, char *data, int child_count,
-                 const char *label) {
+tree_t *new_tree(nodetype_t type, char *data, const char *label) {
   tree_t *tree = malloc(sizeof(tree_t));
   tree->type = type;
   tree->data = data;
-  tree->child_count = child_count;
+  tree->child_count = 0;
   tree->label = (char *)label;
 
   return tree;
@@ -43,4 +44,13 @@ int tree_contains_child(tree_t *tree, nodetype_t expected) {
     }
   }
   return 0;
+}
+
+int tree_get_child_index(tree_t *tree, nodetype_t expected) {
+  for (size_t i = 0; i < tree->child_count; i++) {
+    if (tree->children[i]->type == expected) {
+      return i;
+    }
+  }
+  THROW("Tree '%s' doesn't contain expected child.", tree->label);
 }

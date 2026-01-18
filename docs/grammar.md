@@ -67,9 +67,9 @@ Literal =
     | ArrayLiteral
     | MapLiteral ;
 
-ArrayLiteral = "[", [ Expr, { ",", Expr } ], "]" ;
+ArrayLiteral = "[", [ Expr, [ { ",", Expr } ] ], "]" ;
 
-KeyValue = string, ":", Expr ;
+KeyValue = "[", Expr, "]", ":", Expr ;
 
 MapLiteral = "{", [ KeyValue, { ",", KeyValue } ], "}" ;
 
@@ -117,7 +117,7 @@ Function =
     "function",
     ident,
     "(",
-        [ Parameter, { ",", Parameter } ],
+        [ Parameter, [ { ",", Parameter } ] ],
     ")",
     Type,
     "{", Block, "}" ;
@@ -278,7 +278,7 @@ Postfix =
     [ "++" | "--" ] ;
 
 Range =
-    Postfix, "..", Expr ;
+    Postfix, "..", Postfix ;
 
 (* Reserved keywords *)
 function = "function" ;

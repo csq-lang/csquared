@@ -14,9 +14,6 @@ tree_t *parse_literal_map(token_list_t *tokens, size_t index);
 
 /* Types */
 tree_t *parse_type(token_list_t *tokens, size_t index);
-tree_t *parse_type_array(token_list_t *tokens, size_t index);
-tree_t *parse_type_map(token_list_t *tokens, size_t index);
-tree_t *parse_type_function(token_list_t *tokens, size_t index);
 
 /* Declarations */
 tree_t *parse_declaration(token_list_t *tokens, size_t index);
@@ -29,8 +26,19 @@ tree_t *parse_decl_enum(token_list_t *tokens, size_t index);
 tree_t *parse_statement(token_list_t *tokens, size_t index);
 tree_t *parse_stmt_if(token_list_t *tokens, size_t index);
 
-/* Utilities */
-int tok_txt_is(token_t *token, token_type_t type);
-int tok_type_is(token_t *token, const char *txt);
+/* Expressions */
+tree_t *parse_expr(token_list_t *tokens, size_t index);
+tree_t *parse_expr_assignment(token_list_t *tokens, size_t index);
+tree_t *parse_expr_logic_or(token_list_t *tokens, size_t index);
+tree_t *parse_expr_logic_and(token_list_t *tokens, size_t index);
+tree_t *parse_expr_equality(token_list_t *tokens, size_t index);
+tree_t *parse_expr_relational(token_list_t *tokens, size_t index);
+tree_t *parse_expr_additive(token_list_t *tokens, size_t index);
+tree_t *parse_expr_multiplicative(token_list_t *tokens, size_t index);
+tree_t *parse_expr_exponent(token_list_t *tokens, size_t index);
+tree_t *parse_expr_unary(token_list_t *tokens, size_t index);
+tree_t *parse_expr_primary(token_list_t *tokens, size_t index);
+tree_t *parse_expr_postfix(token_list_t *tokens, size_t index);
+tree_t *parse_expr_range(token_list_t *tokens, size_t index);
 
 #endif // INCLUDE_INCLUDE_PARSER_H_
