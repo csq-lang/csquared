@@ -76,15 +76,7 @@ MapLiteral = "{", [ KeyValue, { ",", KeyValue } ], "}" ;
 (* ===== Types ===== *)
 
 Type =
-      "string"
-    | "boolean"
-    | "tag"
-    | "int", [ bit_depth ]
-    | "uint", [ bit_depth ]
-    | "float", [ bit_depth ]
-    | "void"
-    | "channel"
-    | ident
+    ident - "void"
     | ArrayType
     | MapType
     | FunctionType ;
