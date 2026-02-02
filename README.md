@@ -33,7 +33,7 @@ ld -m elf_i386 source.o -o source.out # generate the binary
 - [x] **Parser**: generates a CST (*Concrete-Syntax Tree*), a raw representation of the program, excluding symbols that are not needed and are purely syntactical.
 - [x] **Compiler**: generates *x86/ARM NASM* from the AST and packs it into a binary, which can be ran by the user.
 - [ ] **Semantical analyzer**: analyzes the AST before compilation to check for semantic error before wasting resources compiling clearly illegal (semantically) code.
-- [ ] **Optimizer**: tries to optimize the code as much as possible: optimizes loops, removes code that doesn't affect the output (dead code), reuses previously calculated values, among other optimizations. Not to be confused with optimiziation of Raven as whole.
+- [ ] **Optimizer**: tries to optimize the code as much as possible: optimizes loops, removes code that doesn't affect the output (dead code), reuses previously calculated values, among other optimizations.
 - [ ] **Porting**: add Windows/MacOS compatibilty.
 
 ## Phase 2
