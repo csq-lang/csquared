@@ -2,6 +2,7 @@
 build
 bin
 compile_commands.json
+rvnout
 
 # debug
 vgcore*
@@ -11,4 +12,4 @@ vgcore*
 
 # misc.
 scripts
-
+source.rvn
