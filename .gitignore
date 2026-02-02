@@ -1,5 +1,14 @@
+# build
 build
-compiler/compile_commands.json
-compiler/vgcore*
+bin
+compile_commands.json
+
+# debug
+vgcore*
+
+# clangd
 .cache
-scripts/
+
+# misc.
+scripts
+
