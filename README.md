@@ -1,53 +1,59 @@
-Raven
----
-Raven is a fast, pragmatic general-purpose language mixing imperative and object-oriented programming.
+<center><img src="assets/logo.png" width="200" style="border-radius: 12%;"></center>
 
-# Build
-Raven is made in C99, and uses Make as it's build system.
+# C² Language
 
-Right now there are no packages nor built executables, the only way to use Raven (although I don't know why you would want to with no compiler) is to build it from source:
-```bash
-# supposing you are in the repo's root
-cd compiler
-make all
+A simple and efficient programming language designed for modern software development.
+
+## Overview
+
+C² is a compiled language that combines the performance of low-level languages with the simplicity and readability of high-level languages.
+
+## Features
+
+- Static typing with type inference
+- Memory safe compilation
+- Fast execution
+- Simple syntax
+- Cross-platform support
+
+## Getting Started
+
+### Installation
+
+Download the latest version from the official repository and follow the platform-specific installation guide.
+
+## Basic Syntax
+
+### Variables and Types
+
+```c
+int count = 10
+float pi = 3.14159
+bool active = true
 ```
 
-To generate `compile_commands.json`, ensure you have `bear` installed and run this instead of the normal `make` command:
-```bash
-bear -- make all
+### Functions
+
+```c
+func add(int a, int b) -> int {
+    return a + b
+}
 ```
 
-## Run
-There are two binaries in `raven/compiler/build/` after [building](README#Build):
-- `compiler`: Normal binary. Preferred.
-- `compiler_debug`: Binary with ALL information, useful for debugging. This is for early versions, I will add flags later, which will make this binary obsolete for users and only useful for me.
+### Control Flow
 
-Note that Raven will first support Linux, then Windows and finally MacOS (full support coming probably later than version 1).
+```c
+if (count > 5) {
+    // Greater than
+} else {
+    // Less or Equal than 
+}
+```
 
-# Roadmap
+## Documentation
 
-## Phase 1
-> See [phase 1's description](https://git.ddoichita.dev/nykenik24/raven/src/branch/main/docs/plan.md#phase-1-the-prototype) here.
+For more information, visit the official documentation or check the examples directory.
 
-- [x] **Lexer**: converts the raw source into *tokens* (=words) inside a token list. [Source](./compiler/src/parser/lexer.c).
-  - [x] Error handling. Can be enhanced, but it will evolve if other phases elaborate on error handling (`rvnerror.h`), so marked as done for now.
-- [ ] **Parser**: generates a CST (*Concrete-Syntax Tree*), a raw representation of the program, excluding symbols that are not needed and are purely syntactical.
-  - [ ] Error handling.
-- [ ] **Simplifier**: converts the CST (which is bloated and full of unnecessary nesting) into a much simpler AST (*Abstract Syntax Tree*).
-- [ ] **Semantical analyzer**: analyzes the AST before compilation to check for semantic error before wasting resources compiling clearly illegal (semantically) code.
-  - [ ] Error handling.
-- [ ] **Optimizer**: tries to optimize the code as much as possible: optimizes loops, removes code that doesn't affect the output (dead code), reuses previously calculated values, among other optimizations. Not to be confused with optimiziation of Raven as whole.
-  - [ ] Error handling.
-- [ ] **Compiler**: generates *x86/ARM NASM* from the AST and packs it into a binary, which can be ran by the user.
-  - [ ] Error handling.
-- [ ] **Optimiziation**: optimize all previous phases. Not to be confused with the *optimizer*.
-- [ ] **Porting**: add Windows/MacOS compatibilty.
+## License
 
-
-<!-- ## Phase 2 -->
-<!-- > See [phase 2's description](https://git.ddoichita.dev/nykenik24/raven/src/branch/main/docs/plan.md#phase-2-the-v1-compiler) here. -->
-
-<!-- ## Phase 3 -->
-<!-- > See [phase 3's description](https://git.ddoichita.dev/nykenik24/raven/src/branch/main/docs/plan.md#phase-3-the-stage-2-compiler) here. -->
-## Raven Language
-Raven is a fast, pragmatic general-purpose language mixing imperative and object-oriented programming.
+See LICENSE file for details.

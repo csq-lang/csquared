@@ -1,4 +1,6 @@
 build
+tests/__pycache__
+__pycache__
 compiler/compile_commands.json
 compiler/vgcore*
 .cache

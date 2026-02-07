@@ -1,0 +1,26 @@
+func exit(int code) 
+{
+    __builtin_syscall(1, code)
+} 
+
+
+func add(int a, int b) -> int
+{
+    return a + b
+}
+
+func main()
+{
+    int sum = add(1, 5)
+    if(sum >= 5)
+    {
+        __builtin_syscall(4, 1, "Greater than\n", 13)
+    }
+
+    float pi = 3.14
+    string text = "Hello from C² Compiler!"
+    char letter = text[0]
+    
+    bool isAlive = true 
+    exit(1)
+}

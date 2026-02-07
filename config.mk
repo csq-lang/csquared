@@ -1,10 +1,10 @@
-# Configuration for Raven project
+# Configuration for C² project
 CC := gcc
 CFLAGS := -std=gnu99 -Wall -Wextra -pedantic -Iinclude -D_GNU_SOURCE
 LDFLAGS :=
 
 # Target executable
-TARGET := raven
+TARGET := csq-x86
 
 # Directories
 SRCDIR := src

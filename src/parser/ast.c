@@ -1,9 +1,24 @@
+/**
+ * @file ast.c
+ * @brief Abstract Syntax Tree (AST) construction and management
+ * @details Implements AST node creation, manipulation, and destruction for all
+ * C² language constructs including declarations, statements, expressions,
+ * and type specifications. Provides builder functions for constructing the syntax tree.
+ */
+
 #include <parser/ast.h>
 #include <stdlib.h>
 #include <string.h>
 
-rvn_node* node_create(node_type type, size_t line, size_t column) {
-    rvn_node* node = calloc(1, sizeof(rvn_node));
+/**
+ * @brief Create a new AST node
+ * @param type Node type enumeration
+ * @param line Source line number
+ * @param column Source column number
+ * @return Newly allocated node, or NULL on allocation failure
+ */
+csq_node* node_create(node_type type, size_t line, size_t column) {
+    csq_node* node = calloc(1, sizeof(csq_node));
     if (!node) return NULL;
     
     node->type = type;
@@ -15,7 +30,12 @@ rvn_node* node_create(node_type type, size_t line, size_t column) {
     return node;
 }
 
-void node_free(rvn_node* node) {
+/**
+ * @brief Recursively free AST node and its children
+ * @details Deallocates node and all sub-nodes, handling cleanup based on node type.
+ * @param node Node to deallocate
+ */
+void node_free(csq_node* node) {
     if (!node) return;
     
     switch (node->type) {
@@ -180,12 +200,20 @@ void node_free(rvn_node* node) {
     free(node);
 }
 
+/**
+ * @brief Initialize a node list
+ * @param list Node list structure to initialize
+ */
 void node_list_init(node_list* list) {
     list->items = NULL;
     list->count = 0;
     list->capacity = 0;
 }
 
+/**
+ * @brief Free all nodes in a list
+ * @param list Node list to deallocate
+ */
 void node_list_free(node_list* list) {
     if (!list) return;
     
@@ -198,12 +226,18 @@ void node_list_free(node_list* list) {
     list->capacity = 0;
 }
 
-void node_list_add(node_list* list, rvn_node* node) {
+/**
+ * @brief Add node to node list
+ * @details Resizes the list if necessary to accommodate the new node.
+ * @param list Node list to add to
+ * @param node Node to add
+ */
+void node_list_add(node_list* list, csq_node* node) {
     if (!list || !node) return;
     
     if (list->count >= list->capacity) {
         size_t new_capacity = list->capacity == 0 ? 8 : list->capacity * 2;
-        rvn_node** new_items = realloc(list->items, new_capacity * sizeof(rvn_node*));
+        csq_node** new_items = realloc(list->items, new_capacity * sizeof(csq_node*));
         if (!new_items) return;
         
         list->items = new_items;
@@ -213,6 +247,11 @@ void node_list_add(node_list* list, rvn_node* node) {
     list->items[list->count++] = node;
 }
 
+/**
+ * @brief Create AST context structure
+ * @details Initializes the context that holds the root AST node and symbol table.
+ * @return Allocated context, or NULL on failure
+ */
 ast_context* ast_context_create(void) {
     ast_context* ctx = malloc(sizeof(ast_context));
     if (!ctx) return NULL;
@@ -224,6 +263,10 @@ ast_context* ast_context_create(void) {
     return ctx;
 }
 
+/**
+ * @brief Free AST context and all nodes
+ * @param ctx Context to deallocate
+ */
 void ast_context_free(ast_context* ctx) {
     if (!ctx) return;
     
@@ -233,20 +276,20 @@ void ast_context_free(ast_context* ctx) {
     free(ctx);
 }
 
-rvn_node* ast_create_program(void) {
-    rvn_node* node = node_create(NODE_PROGRAM, 0, 0);
+csq_node* ast_create_program(void) {
+    csq_node* node = node_create(NODE_PROGRAM, 0, 0);
     if (node) node_list_init(&node->data.program.statements);
     return node;
 }
 
-rvn_node* ast_create_block(void) {
-    rvn_node* node = node_create(NODE_BLOCK, 0, 0);
+csq_node* ast_create_block(void) {
+    csq_node* node = node_create(NODE_BLOCK, 0, 0);
     if (node) node_list_init(&node->data.block.statements);
     return node;
 }
 
-rvn_node* ast_create_var_decl(rvn_node* name, rvn_node* type_spec, rvn_node* init, bool is_mutable) {
-    rvn_node* node = node_create(NODE_VAR_DECL, name ? name->line : 0, name ? name->column : 0);
+csq_node* ast_create_var_decl(csq_node* name, csq_node* type_spec, csq_node* init, bool is_mutable) {
+    csq_node* node = node_create(NODE_VAR_DECL, name ? name->line : 0, name ? name->column : 0);
     if (!node) return NULL;
     
     node->data.var_decl.name = name;
@@ -257,8 +300,8 @@ rvn_node* ast_create_var_decl(rvn_node* name, rvn_node* type_spec, rvn_node* ini
     return node;
 }
 
-rvn_node* ast_create_const_decl(rvn_node* name, rvn_node* type_spec, rvn_node* init) {
-    rvn_node* node = node_create(NODE_CONST_DECL, name ? name->line : 0, name ? name->column : 0);
+csq_node* ast_create_const_decl(csq_node* name, csq_node* type_spec, csq_node* init) {
+    csq_node* node = node_create(NODE_CONST_DECL, name ? name->line : 0, name ? name->column : 0);
     if (!node) return NULL;
     
     node->data.const_decl.name = name;
@@ -268,8 +311,8 @@ rvn_node* ast_create_const_decl(rvn_node* name, rvn_node* type_spec, rvn_node* i
     return node;
 }
 
-rvn_node* ast_create_function_decl(rvn_node* name, node_list* params, rvn_node* ret_type, rvn_node* body) {
-    rvn_node* node = node_create(NODE_FUNCTION_DECL, name ? name->line : 0, name ? name->column : 0);
+csq_node* ast_create_function_decl(csq_node* name, node_list* params, csq_node* ret_type, csq_node* body) {
+    csq_node* node = node_create(NODE_FUNCTION_DECL, name ? name->line : 0, name ? name->column : 0);
     if (!node) return NULL;
     
     node->data.function_decl.name = name;
@@ -287,8 +330,8 @@ rvn_node* ast_create_function_decl(rvn_node* name, node_list* params, rvn_node* 
     return node;
 }
 
-rvn_node* ast_create_param(rvn_node* name, rvn_node* type_spec, rvn_node* default_val) {
-    rvn_node* node = node_create(NODE_PARAM, name ? name->line : 0, name ? name->column : 0);
+csq_node* ast_create_param(csq_node* name, csq_node* type_spec, csq_node* default_val) {
+    csq_node* node = node_create(NODE_PARAM, name ? name->line : 0, name ? name->column : 0);
     if (!node) return NULL;
     
     node->data.param.name = name;
@@ -298,8 +341,8 @@ rvn_node* ast_create_param(rvn_node* name, rvn_node* type_spec, rvn_node* defaul
     return node;
 }
 
-rvn_node* ast_create_struct_decl(rvn_node* name, node_list* fields) {
-    rvn_node* node = node_create(NODE_STRUCT_DECL, name ? name->line : 0, name ? name->column : 0);
+csq_node* ast_create_struct_decl(csq_node* name, node_list* fields) {
+    csq_node* node = node_create(NODE_STRUCT_DECL, name ? name->line : 0, name ? name->column : 0);
     if (!node) return NULL;
     
     node->data.struct_decl.name = name;
@@ -315,8 +358,8 @@ rvn_node* ast_create_struct_decl(rvn_node* name, node_list* fields) {
     return node;
 }
 
-rvn_node* ast_create_enum_decl(rvn_node* name, node_list* variants) {
-    rvn_node* node = node_create(NODE_ENUM_DECL, name ? name->line : 0, name ? name->column : 0);
+csq_node* ast_create_enum_decl(csq_node* name, node_list* variants) {
+    csq_node* node = node_create(NODE_ENUM_DECL, name ? name->line : 0, name ? name->column : 0);
     if (!node) return NULL;
     
     node->data.enum_decl.name = name;
@@ -330,8 +373,8 @@ rvn_node* ast_create_enum_decl(rvn_node* name, node_list* variants) {
     return node;
 }
 
-rvn_node* ast_create_enum_variant(rvn_node* name, node_list* fields, int value) {
-    rvn_node* node = node_create(NODE_ENUM_VARIANT, name ? name->line : 0, name ? name->column : 0);
+csq_node* ast_create_enum_variant(csq_node* name, node_list* fields, int value) {
+    csq_node* node = node_create(NODE_ENUM_VARIANT, name ? name->line : 0, name ? name->column : 0);
     if (!node) return NULL;
     
     node->data.enum_variant.name = name;
@@ -346,8 +389,8 @@ rvn_node* ast_create_enum_variant(rvn_node* name, node_list* fields, int value) 
     return node;
 }
 
-rvn_node* ast_create_field(rvn_node* name, rvn_node* type_spec) {
-    rvn_node* node = node_create(NODE_FIELD, name ? name->line : 0, name ? name->column : 0);
+csq_node* ast_create_field(csq_node* name, csq_node* type_spec) {
+    csq_node* node = node_create(NODE_FIELD, name ? name->line : 0, name ? name->column : 0);
     if (!node) return NULL;
     
     node->data.field.name = name;
@@ -356,8 +399,8 @@ rvn_node* ast_create_field(rvn_node* name, rvn_node* type_spec) {
     return node;
 }
 
-rvn_node* ast_create_if(rvn_node* condition, rvn_node* then_branch, rvn_node* else_branch) {
-    rvn_node* node = node_create(NODE_IF, condition ? condition->line : 0, condition ? condition->column : 0);
+csq_node* ast_create_if(csq_node* condition, csq_node* then_branch, csq_node* else_branch) {
+    csq_node* node = node_create(NODE_IF, condition ? condition->line : 0, condition ? condition->column : 0);
     if (!node) return NULL;
     
     node->data.if_stmt.condition = condition;
@@ -367,8 +410,8 @@ rvn_node* ast_create_if(rvn_node* condition, rvn_node* then_branch, rvn_node* el
     return node;
 }
 
-rvn_node* ast_create_switch(rvn_node* expr, node_list* cases, rvn_node* default_case) {
-    rvn_node* node = node_create(NODE_SWITCH, expr ? expr->line : 0, expr ? expr->column : 0);
+csq_node* ast_create_switch(csq_node* expr, node_list* cases, csq_node* default_case) {
+    csq_node* node = node_create(NODE_SWITCH, expr ? expr->line : 0, expr ? expr->column : 0);
     if (!node) return NULL;
     
     node->data.switch_stmt.expr = expr;
@@ -383,8 +426,8 @@ rvn_node* ast_create_switch(rvn_node* expr, node_list* cases, rvn_node* default_
     return node;
 }
 
-rvn_node* ast_create_case(rvn_node* value, rvn_node* body) {
-    rvn_node* node = node_create(NODE_CASE, value ? value->line : 0, value ? value->column : 0);
+csq_node* ast_create_case(csq_node* value, csq_node* body) {
+    csq_node* node = node_create(NODE_CASE, value ? value->line : 0, value ? value->column : 0);
     if (!node) return NULL;
     
     node->data.case_stmt.value = value;
@@ -393,8 +436,8 @@ rvn_node* ast_create_case(rvn_node* value, rvn_node* body) {
     return node;
 }
 
-rvn_node* ast_create_while(rvn_node* condition, rvn_node* body) {
-    rvn_node* node = node_create(NODE_WHILE, condition ? condition->line : 0, condition ? condition->column : 0);
+csq_node* ast_create_while(csq_node* condition, csq_node* body) {
+    csq_node* node = node_create(NODE_WHILE, condition ? condition->line : 0, condition ? condition->column : 0);
     if (!node) return NULL;
     
     node->data.while_stmt.condition = condition;
@@ -403,8 +446,8 @@ rvn_node* ast_create_while(rvn_node* condition, rvn_node* body) {
     return node;
 }
 
-rvn_node* ast_create_for(rvn_node* var, rvn_node* iterable, rvn_node* body) {
-    rvn_node* node = node_create(NODE_FOR, var ? var->line : 0, var ? var->column : 0);
+csq_node* ast_create_for(csq_node* var, csq_node* iterable, csq_node* body) {
+    csq_node* node = node_create(NODE_FOR, var ? var->line : 0, var ? var->column : 0);
     if (!node) return NULL;
     
     node->data.for_stmt.var = var;
@@ -414,8 +457,8 @@ rvn_node* ast_create_for(rvn_node* var, rvn_node* iterable, rvn_node* body) {
     return node;
 }
 
-rvn_node* ast_create_repeat(rvn_node* body, rvn_node* condition) {
-    rvn_node* node = node_create(NODE_REPEAT, body ? body->line : 0, body ? body->column : 0);
+csq_node* ast_create_repeat(csq_node* body, csq_node* condition) {
+    csq_node* node = node_create(NODE_REPEAT, body ? body->line : 0, body ? body->column : 0);
     if (!node) return NULL;
     
     node->data.repeat_stmt.body = body;
@@ -424,8 +467,8 @@ rvn_node* ast_create_repeat(rvn_node* body, rvn_node* condition) {
     return node;
 }
 
-rvn_node* ast_create_return(rvn_node* value) {
-    rvn_node* node = node_create(NODE_RETURN, value ? value->line : 0, value ? value->column : 0);
+csq_node* ast_create_return(csq_node* value) {
+    csq_node* node = node_create(NODE_RETURN, value ? value->line : 0, value ? value->column : 0);
     if (!node) return NULL;
     
     node->data.return_stmt.value = value;
@@ -433,8 +476,8 @@ rvn_node* ast_create_return(rvn_node* value) {
     return node;
 }
 
-rvn_node* ast_create_throw(rvn_node* value) {
-    rvn_node* node = node_create(NODE_THROW, value ? value->line : 0, value ? value->column : 0);
+csq_node* ast_create_throw(csq_node* value) {
+    csq_node* node = node_create(NODE_THROW, value ? value->line : 0, value ? value->column : 0);
     if (!node) return NULL;
     
     node->data.throw_stmt.value = value;
@@ -442,8 +485,8 @@ rvn_node* ast_create_throw(rvn_node* value) {
     return node;
 }
 
-rvn_node* ast_create_try(rvn_node* try_block, node_list* catches) {
-    rvn_node* node = node_create(NODE_TRY, try_block ? try_block->line : 0, try_block ? try_block->column : 0);
+csq_node* ast_create_try(csq_node* try_block, node_list* catches) {
+    csq_node* node = node_create(NODE_TRY, try_block ? try_block->line : 0, try_block ? try_block->column : 0);
     if (!node) return NULL;
     
     node->data.try_stmt.try_block = try_block;
@@ -457,8 +500,8 @@ rvn_node* ast_create_try(rvn_node* try_block, node_list* catches) {
     return node;
 }
 
-rvn_node* ast_create_catch(rvn_node* var, rvn_node* type_spec, rvn_node* block) {
-    rvn_node* node = node_create(NODE_CATCH, var ? var->line : 0, var ? var->column : 0);
+csq_node* ast_create_catch(csq_node* var, csq_node* type_spec, csq_node* block) {
+    csq_node* node = node_create(NODE_CATCH, var ? var->line : 0, var ? var->column : 0);
     if (!node) return NULL;
     
     node->data.catch_block.var = var;
@@ -468,8 +511,8 @@ rvn_node* ast_create_catch(rvn_node* var, rvn_node* type_spec, rvn_node* block) 
     return node;
 }
 
-rvn_node* ast_create_defer(rvn_node* stmt) {
-    rvn_node* node = node_create(NODE_DEFER, stmt ? stmt->line : 0, stmt ? stmt->column : 0);
+csq_node* ast_create_defer(csq_node* stmt) {
+    csq_node* node = node_create(NODE_DEFER, stmt ? stmt->line : 0, stmt ? stmt->column : 0);
     if (!node) return NULL;
     
     node->data.defer_stmt.stmt = stmt;
@@ -477,16 +520,16 @@ rvn_node* ast_create_defer(rvn_node* stmt) {
     return node;
 }
 
-rvn_node* ast_create_break(void) {
+csq_node* ast_create_break(void) {
     return node_create(NODE_BREAK, 0, 0);
 }
 
-rvn_node* ast_create_continue(void) {
+csq_node* ast_create_continue(void) {
     return node_create(NODE_CONTINUE, 0, 0);
 }
 
-rvn_node* ast_create_binary(binary_op op, rvn_node* left, rvn_node* right) {
-    rvn_node* node = node_create(NODE_BINARY_OP, left ? left->line : 0, left ? left->column : 0);
+csq_node* ast_create_binary(binary_op op, csq_node* left, csq_node* right) {
+    csq_node* node = node_create(NODE_BINARY_OP, left ? left->line : 0, left ? left->column : 0);
     if (!node) return NULL;
     
     node->data.binary.op = op;
@@ -496,8 +539,8 @@ rvn_node* ast_create_binary(binary_op op, rvn_node* left, rvn_node* right) {
     return node;
 }
 
-rvn_node* ast_create_unary(unary_op op, rvn_node* operand) {
-    rvn_node* node = node_create(NODE_UNARY_OP, operand ? operand->line : 0, operand ? operand->column : 0);
+csq_node* ast_create_unary(unary_op op, csq_node* operand) {
+    csq_node* node = node_create(NODE_UNARY_OP, operand ? operand->line : 0, operand ? operand->column : 0);
     if (!node) return NULL;
     
     node->data.unary.op = op;
@@ -506,8 +549,8 @@ rvn_node* ast_create_unary(unary_op op, rvn_node* operand) {
     return node;
 }
 
-rvn_node* ast_create_call(rvn_node* callee, node_list* args) {
-    rvn_node* node = node_create(NODE_CALL, callee ? callee->line : 0, callee ? callee->column : 0);
+csq_node* ast_create_call(csq_node* callee, node_list* args) {
+    csq_node* node = node_create(NODE_CALL, callee ? callee->line : 0, callee ? callee->column : 0);
     if (!node) return NULL;
     
     node->data.call.callee = callee;
@@ -521,8 +564,8 @@ rvn_node* ast_create_call(rvn_node* callee, node_list* args) {
     return node;
 }
 
-rvn_node* ast_create_index(rvn_node* object, rvn_node* index) {
-    rvn_node* node = node_create(NODE_INDEX, object ? object->line : 0, object ? object->column : 0);
+csq_node* ast_create_index(csq_node* object, csq_node* index) {
+    csq_node* node = node_create(NODE_INDEX, object ? object->line : 0, object ? object->column : 0);
     if (!node) return NULL;
     
     node->data.index.object = object;
@@ -531,8 +574,8 @@ rvn_node* ast_create_index(rvn_node* object, rvn_node* index) {
     return node;
 }
 
-rvn_node* ast_create_access(rvn_node* object, rvn_node* member, bool is_arrow) {
-    rvn_node* node = node_create(NODE_ACCESS, object ? object->line : 0, object ? object->column : 0);
+csq_node* ast_create_access(csq_node* object, csq_node* member, bool is_arrow) {
+    csq_node* node = node_create(NODE_ACCESS, object ? object->line : 0, object ? object->column : 0);
     if (!node) return NULL;
     
     node->data.access.object = object;
@@ -542,8 +585,8 @@ rvn_node* ast_create_access(rvn_node* object, rvn_node* member, bool is_arrow) {
     return node;
 }
 
-rvn_node* ast_create_identifier(const char* name, size_t len) {
-    rvn_node* node = node_create(NODE_IDENTIFIER, 0, 0);
+csq_node* ast_create_identifier(const char* name, size_t len) {
+    csq_node* node = node_create(NODE_IDENTIFIER, 0, 0);
     if (!node) return NULL;
     
     char* name_copy = malloc(len + 1);
@@ -560,20 +603,20 @@ rvn_node* ast_create_identifier(const char* name, size_t len) {
     return node;
 }
 
-rvn_node* ast_create_literal_int(long long value) {
-    rvn_node* node = node_create(NODE_LITERAL_INT, 0, 0);
+csq_node* ast_create_literal_int(long long value) {
+    csq_node* node = node_create(NODE_LITERAL_INT, 0, 0);
     if (node) node->data.literal_int.value = value;
     return node;
 }
 
-rvn_node* ast_create_literal_float(double value) {
-    rvn_node* node = node_create(NODE_LITERAL_FLOAT, 0, 0);
+csq_node* ast_create_literal_float(double value) {
+    csq_node* node = node_create(NODE_LITERAL_FLOAT, 0, 0);
     if (node) node->data.literal_float.value = value;
     return node;
 }
 
-rvn_node* ast_create_literal_string(const char* value, size_t len) {
-    rvn_node* node = node_create(NODE_LITERAL_STRING, 0, 0);
+csq_node* ast_create_literal_string(const char* value, size_t len) {
+    csq_node* node = node_create(NODE_LITERAL_STRING, 0, 0);
     if (!node) return NULL;
     
     char* str = malloc(len + 1);
@@ -590,18 +633,18 @@ rvn_node* ast_create_literal_string(const char* value, size_t len) {
     return node;
 }
 
-rvn_node* ast_create_literal_bool(bool value) {
-    rvn_node* node = node_create(NODE_LITERAL_BOOL, 0, 0);
+csq_node* ast_create_literal_bool(bool value) {
+    csq_node* node = node_create(NODE_LITERAL_BOOL, 0, 0);
     if (node) node->data.literal_bool.value = value;
     return node;
 }
 
-rvn_node* ast_create_literal_null(void) {
+csq_node* ast_create_literal_null(void) {
     return node_create(NODE_LITERAL_NULL, 0, 0);
 }
 
-rvn_node* ast_create_literal_tag(const char* name, size_t len) {
-    rvn_node* node = node_create(NODE_LITERAL_TAG, 0, 0);
+csq_node* ast_create_literal_tag(const char* name, size_t len) {
+    csq_node* node = node_create(NODE_LITERAL_TAG, 0, 0);
     if (!node) return NULL;
     
     char* name_copy = malloc(len + 1);
@@ -618,8 +661,8 @@ rvn_node* ast_create_literal_tag(const char* name, size_t len) {
     return node;
 }
 
-rvn_node* ast_create_array_literal(node_list* elements) {
-    rvn_node* node = node_create(NODE_ARRAY_LITERAL, 0, 0);
+csq_node* ast_create_array_literal(node_list* elements) {
+    csq_node* node = node_create(NODE_ARRAY_LITERAL, 0, 0);
     if (!node) return NULL;
     
     node_list_init(&node->data.array_literal.elements);
@@ -632,8 +675,8 @@ rvn_node* ast_create_array_literal(node_list* elements) {
     return node;
 }
 
-rvn_node* ast_create_map_literal(node_list* entries) {
-    rvn_node* node = node_create(NODE_MAP_LITERAL, 0, 0);
+csq_node* ast_create_map_literal(node_list* entries) {
+    csq_node* node = node_create(NODE_MAP_LITERAL, 0, 0);
     if (!node) return NULL;
     
     node_list_init(&node->data.map_literal.entries);
@@ -646,8 +689,8 @@ rvn_node* ast_create_map_literal(node_list* entries) {
     return node;
 }
 
-rvn_node* ast_create_map_entry(rvn_node* key, rvn_node* value) {
-    rvn_node* node = node_create(NODE_MAP_ENTRY, key ? key->line : 0, key ? key->column : 0);
+csq_node* ast_create_map_entry(csq_node* key, csq_node* value) {
+    csq_node* node = node_create(NODE_MAP_ENTRY, key ? key->line : 0, key ? key->column : 0);
     if (!node) return NULL;
     
     node->data.map_entry.key = key;
@@ -656,8 +699,8 @@ rvn_node* ast_create_map_entry(rvn_node* key, rvn_node* value) {
     return node;
 }
 
-rvn_node* ast_create_spawn(rvn_node* call_expr) {
-    rvn_node* node = node_create(NODE_SPAWN, call_expr ? call_expr->line : 0, call_expr ? call_expr->column : 0);
+csq_node* ast_create_spawn(csq_node* call_expr) {
+    csq_node* node = node_create(NODE_SPAWN, call_expr ? call_expr->line : 0, call_expr ? call_expr->column : 0);
     if (!node) return NULL;
     
     node->data.spawn.call_expr = call_expr;
@@ -665,8 +708,8 @@ rvn_node* ast_create_spawn(rvn_node* call_expr) {
     return node;
 }
 
-rvn_node* ast_create_import(const char* path, size_t len, rvn_node* alias, bool is_wildcard) {
-    rvn_node* node = node_create(NODE_IMPORT, 0, 0);
+csq_node* ast_create_import(const char* path, size_t len, csq_node* alias, bool is_wildcard) {
+    csq_node* node = node_create(NODE_IMPORT, 0, 0);
     if (!node) return NULL;
     
     char* path_copy = malloc(len + 1);
@@ -685,12 +728,12 @@ rvn_node* ast_create_import(const char* path, size_t len, rvn_node* alias, bool 
     return node;
 }
 
-rvn_node* ast_create_self(void) {
+csq_node* ast_create_self(void) {
     return node_create(NODE_SELF, 0, 0);
 }
 
-rvn_node* ast_create_cast(rvn_node* expr, rvn_node* target_type) {
-    rvn_node* node = node_create(NODE_CAST, expr ? expr->line : 0, expr ? expr->column : 0);
+csq_node* ast_create_cast(csq_node* expr, csq_node* target_type) {
+    csq_node* node = node_create(NODE_CAST, expr ? expr->line : 0, expr ? expr->column : 0);
     if (!node) return NULL;
     
     node->data.cast.expr = expr;
@@ -699,8 +742,8 @@ rvn_node* ast_create_cast(rvn_node* expr, rvn_node* target_type) {
     return node;
 }
 
-rvn_node* ast_create_type_spec(rvn_node* base, node_list* args) {
-    rvn_node* node = node_create(NODE_TYPE_SPEC, base ? base->line : 0, base ? base->column : 0);
+csq_node* ast_create_type_spec(csq_node* base, node_list* args) {
+    csq_node* node = node_create(NODE_TYPE_SPEC, base ? base->line : 0, base ? base->column : 0);
     if (!node) return NULL;
     
     node->data.type_spec.base = base;
@@ -714,8 +757,8 @@ rvn_node* ast_create_type_spec(rvn_node* base, node_list* args) {
     return node;
 }
 
-rvn_node* ast_create_generic_inst(rvn_node* base, node_list* type_args) {
-    rvn_node* node = node_create(NODE_GENERIC_INST, base ? base->line : 0, base ? base->column : 0);
+csq_node* ast_create_generic_inst(csq_node* base, node_list* type_args) {
+    csq_node* node = node_create(NODE_GENERIC_INST, base ? base->line : 0, base ? base->column : 0);
     if (!node) return NULL;
     
     node->data.generic_inst.base = base;
@@ -729,8 +772,8 @@ rvn_node* ast_create_generic_inst(rvn_node* base, node_list* type_args) {
     return node;
 }
 
-rvn_node* ast_create_range(rvn_node* start, rvn_node* end, bool inclusive) {
-    rvn_node* node = node_create(NODE_RANGE, start ? start->line : 0, start ? start->column : 0);
+csq_node* ast_create_range(csq_node* start, csq_node* end, bool inclusive) {
+    csq_node* node = node_create(NODE_RANGE, start ? start->line : 0, start ? start->column : 0);
     if (!node) return NULL;
     
     node->data.range.start = start;
@@ -740,8 +783,8 @@ rvn_node* ast_create_range(rvn_node* start, rvn_node* end, bool inclusive) {
     return node;
 }
 
-rvn_node* ast_create_tuple(node_list* elements) {
-    rvn_node* node = node_create(NODE_TUPLE, 0, 0);
+csq_node* ast_create_tuple(node_list* elements) {
+    csq_node* node = node_create(NODE_TUPLE, 0, 0);
     if (!node) return NULL;
     
     node_list_init(&node->data.tuple.elements);
@@ -754,8 +797,8 @@ rvn_node* ast_create_tuple(node_list* elements) {
     return node;
 }
 
-rvn_node* ast_create_expr_stmt(rvn_node* expr) {
-    rvn_node* node = node_create(NODE_EXPR_STMT, expr ? expr->line : 0, expr ? expr->column : 0);
+csq_node* ast_create_expr_stmt(csq_node* expr) {
+    csq_node* node = node_create(NODE_EXPR_STMT, expr ? expr->line : 0, expr ? expr->column : 0);
     if (!node) return NULL;
     
     node->data.expr_stmt.expr = expr;
@@ -763,10 +806,15 @@ rvn_node* ast_create_expr_stmt(rvn_node* expr) {
     return node;
 }
 
-rvn_node* ast_create_empty(void) {
+csq_node* ast_create_empty(void) {
     return node_create(NODE_EMPTY, 0, 0);
 }
 
+/**
+ * @brief Convert node type to string representation
+ * @param type Node type enumeration
+ * @return String name of the node type
+ */
 const char* node_type_to_string(node_type type) {
     switch (type) {
         case NODE_PROGRAM: return "program";
@@ -822,6 +870,11 @@ const char* node_type_to_string(node_type type) {
     }
 }
 
+/**
+ * @brief Convert binary operator to string
+ * @param op Binary operator enumeration
+ * @return String representation of the operator
+ */
 const char* binary_op_to_string(binary_op op) {
     switch (op) {
         case BINOP_ADD: return "+";
@@ -853,6 +906,11 @@ const char* binary_op_to_string(binary_op op) {
     }
 }
 
+/**
+ * @brief Convert unary operator to string
+ * @param op Unary operator enumeration
+ * @return String representation of the operator
+ */
 const char* unary_op_to_string(unary_op op) {
     switch (op) {
         case UNOP_NEG: return "-";

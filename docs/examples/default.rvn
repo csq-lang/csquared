@@ -1,9 +1,0 @@
-function oldEnoughToDrink(age: int, minAge: int = 18) boolean {
-  return age >= minAge;
-}
-
-function main() int {
-  print(oldEnoughToDrink(19)); // true
-  print(oldEnoughToDrink(19, 21)); // false
-  return 0;
-}

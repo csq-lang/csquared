@@ -1,11 +1,26 @@
-#include <raven/logger.h>
+/**
+ * @file logger.c
+ * @brief Logging system implementation
+ * @details Provides formatted logging with severity levels, timestamps,
+ * optional ANSI color support, and debug mode functionality.
+ */
+
+#include <csquare/logger.h>
 #include <stdio.h>
 #include <stdarg.h>
 #include <time.h>
 
-int raven_debug_enabled = 0;
+/**
+ * @brief Main logging function
+ * @details Outputs formatted log messages with timestamp and severity level.
+ * @param level Log severity level
+ * @param file Source file name (for debug mode)
+ * @param line Source line number (for debug mode)
+ * @param fmt Printf-style format string
+ * @param ... Format arguments
+ */int csq_debug_enabled = 0;
 
-void raven_log(LogLevel level, const char* file, int line, const char* fmt, ...) {
+void csq_log(LogLevel level, const char* file, int line, const char* fmt, ...) {
     
     if (level < RVN_LOG_MIN_LEVEL) {
         return;

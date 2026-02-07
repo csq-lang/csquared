@@ -1,6 +1,18 @@
+/**
+ * @file ast_printer.c
+ * @brief AST visualization and debugging
+ * @details Provides functions to print AST structures in a readable hierarchical
+ * format for debugging and development.
+ */
+
 #include <util/ast_printer.h>
 #include <string.h>
 
+/**
+ * @brief Print indentation for hierarchical display
+ * @param out Output file stream
+ * @param indent Number of indentation levels
+ */
 static void print_indent(FILE* out, int indent) {
     for (int i = 0; i < indent; i++) {
         fprintf(out, "  ");
@@ -9,7 +21,13 @@ static void print_indent(FILE* out, int indent) {
 
 static void print_node_list(const node_list* list, FILE* out, int indent, const char* label);
 
-void ast_print_node(const rvn_node* node, FILE* out, int indent) {
+/**
+ * @brief Print AST node and children
+ * @param node Node to print
+ * @param out Output file stream
+ * @param indent Current indentation level
+ */
+void ast_print_node(const csq_node* node, FILE* out, int indent) {
     if (!node) {
         print_indent(out, indent);
         fprintf(out, "(null)\n");
@@ -247,7 +265,7 @@ static void print_node_list(const node_list* list, FILE* out, int indent, const 
     }
 }
 
-void ast_print_type(const rvn_type* type, FILE* out) {
+void ast_print_type(const csq_type* type, FILE* out) {
     if (!type) {
         fprintf(out, "unknown");
         return;
@@ -256,17 +274,10 @@ void ast_print_type(const rvn_type* type, FILE* out) {
     switch (type->kind) {
         case TYPE_VOID: fprintf(out, "void"); break;
         case TYPE_BOOL: fprintf(out, "bool"); break;
-        case TYPE_I8: fprintf(out, "i8"); break;
-        case TYPE_I16: fprintf(out, "i16"); break;
-        case TYPE_I32: fprintf(out, "i32"); break;
-        case TYPE_I64: fprintf(out, "i64"); break;
-        case TYPE_U8: fprintf(out, "u8"); break;
-        case TYPE_U16: fprintf(out, "u16"); break;
-        case TYPE_U32: fprintf(out, "u32"); break;
-        case TYPE_U64: fprintf(out, "u64"); break;
+        case TYPE_INT: fprintf(out, "int"); break;
         case TYPE_F32: fprintf(out, "f32"); break;
         case TYPE_F64: fprintf(out, "f64"); break;
-        case TYPE_CHAR: fprintf(out, "char"); break;
+
         case TYPE_STRING: fprintf(out, "string"); break;
         case TYPE_TAG: fprintf(out, "tag"); break;
         case TYPE_POINTER:
@@ -303,7 +314,7 @@ void ast_print_type(const rvn_type* type, FILE* out) {
     }
 }
 
-void ast_print_symbol(const struct rvn_symbol* sym, FILE* out) {
+void ast_print_symbol(const struct csq_symbol* sym, FILE* out) {
     if (!sym) {
         fprintf(out, "(null)");
         return;

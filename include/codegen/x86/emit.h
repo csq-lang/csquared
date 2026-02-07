@@ -4,6 +4,11 @@
 #include <stdio.h>
 #include <stdbool.h>
 
+typedef enum {
+    ASM_SYNTAX_ATT,
+    ASM_SYNTAX_INTEL
+} emit_syntax;
+
 typedef struct {
     FILE* file;
     char* buffer;
@@ -11,11 +16,14 @@ typedef struct {
     size_t buffer_capacity;
     bool use_buffer;
     int indent_level;
+    emit_syntax syntax;
 } emit_ctx;
 
 emit_ctx* emit_create_file(FILE* file);
 emit_ctx* emit_create_buffer(void);
 void emit_free(emit_ctx* ctx);
+
+void emit_set_syntax(emit_ctx* ctx, emit_syntax syntax);
 
 void emit_indent(emit_ctx* ctx);
 void emit_dedent(emit_ctx* ctx);

@@ -1,24 +1,32 @@
+/**
+ * @file expr.c
+ * @brief Expression parsing and evaluation
+ * @details Implements recursive descent parsing for expressions with proper operator
+ * precedence and associativity. Handles primary expressions, postfix operations,
+ * unary operations, and binary operators at appropriate precedence levels.
+ */
+
 #include <parser/expr.h>
 #include <parser/parser.h>
 #include <stdlib.h>
 #include <string.h>
 
-rvn_node* expr_parse_primary(rvn_parser* parser) {
+csq_node* expr_parse_primary(csq_parser* parser) {
     if (parser_match(parser, TOKEN_KEYWORD_TRUE)) {
-        rvn_node* node = node_create(NODE_LITERAL_BOOL, parser->previous.line, parser->previous.column);
+        csq_node* node = node_create(NODE_LITERAL_BOOL, parser->previous.line, parser->previous.column);
         if (node) node->data.literal_bool.value = true;
         return node;
     }
     
     if (parser_match(parser, TOKEN_KEYWORD_FALSE)) {
-        rvn_node* node = node_create(NODE_LITERAL_BOOL, parser->previous.line, parser->previous.column);
+        csq_node* node = node_create(NODE_LITERAL_BOOL, parser->previous.line, parser->previous.column);
         if (node) node->data.literal_bool.value = false;
         return node;
     }
     
     if (parser_match(parser, TOKEN_NUMBER)) {
-        Token token = parser->previous;
-        rvn_node* node = node_create(NODE_LITERAL_INT, token.line, token.column);
+        csq_token token = parser->previous;
+        csq_node* node = node_create(NODE_LITERAL_INT, token.line, token.column);
         if (!node) return NULL;
         
         char* end;
@@ -34,37 +42,40 @@ rvn_node* expr_parse_primary(rvn_parser* parser) {
     }
     
     if (parser_match(parser, TOKEN_STRING)) {
-        Token token = parser->previous;
-        rvn_node* node = node_create(NODE_LITERAL_STRING, token.line, token.column);
+        csq_token token = parser->previous;
+        csq_node* node = node_create(NODE_LITERAL_STRING, token.line, token.column);
         if (!node) return NULL;
         
-        char* str = malloc(token.length - 1);
+        size_t len = token.length > 2 ? token.length - 2 : 0;
+        char* str = malloc(len + 1);
         if (!str) {
             node_free(node);
             return NULL;
         }
-        memcpy(str, token.start + 1, token.length - 2);
-        str[token.length - 2] = '\0';
+        if (len) memcpy(str, token.start + 1, len);
+        str[len] = '\0';
         
         node->data.literal_string.value = str;
-        node->data.literal_string.len = token.length - 2;
+        node->data.literal_string.len = len;
         return node;
     }
     
     if (parser_match(parser, TOKEN_TAG)) {
-        Token token = parser->previous;
-        rvn_node* node = node_create(NODE_LITERAL_TAG, token.line, token.column);
+        csq_token token = parser->previous;
+        csq_node* node = node_create(NODE_LITERAL_TAG, token.line, token.column);
         if (!node) return NULL;
         
-        char* name = malloc(token.length);
+        size_t len = token.length > 1 ? token.length - 1 : 0;
+        char* name = malloc(len + 1);
         if (!name) {
             node_free(node);
             return NULL;
         }
-        memcpy(name, token.start + 1, token.length - 1);
+        if (len) memcpy(name, token.start + 1, len);
+        name[len] = '\0';
         
         node->data.literal_tag.name = name;
-        node->data.literal_tag.len = token.length - 1;
+        node->data.literal_tag.len = len;
         return node;
     }
     
@@ -77,20 +88,20 @@ rvn_node* expr_parse_primary(rvn_parser* parser) {
     }
     
     if (parser_match(parser, TOKEN_OPEN_PAREN)) {
-        rvn_node* expr = expr_parse(parser);
+        csq_node* expr = expr_parse(parser);
         parser_consume(parser, TOKEN_CLOSE_PAREN, "Expected ')' after expression");
         return expr;
     }
     
     if (parser_match(parser, TOKEN_OPEN_BRACKET)) {
-        rvn_node* array = node_create(NODE_ARRAY_LITERAL, parser->previous.line, parser->previous.column);
+        csq_node* array = node_create(NODE_ARRAY_LITERAL, parser->previous.line, parser->previous.column);
         if (!array) return NULL;
         
         node_list_init(&array->data.array_literal.elements);
         
         if (!parser_check(parser, TOKEN_CLOSE_BRACKET)) {
             do {
-                rvn_node* elem = expr_parse(parser);
+                csq_node* elem = expr_parse(parser);
                 if (elem) node_list_add(&array->data.array_literal.elements, elem);
             } while (parser_match(parser, TOKEN_COMMA));
         }
@@ -103,13 +114,13 @@ rvn_node* expr_parse_primary(rvn_parser* parser) {
     return NULL;
 }
 
-rvn_node* expr_parse_postfix(rvn_parser* parser) {
-    rvn_node* node = expr_parse_primary(parser);
+csq_node* expr_parse_postfix(csq_parser* parser) {
+    csq_node* node = expr_parse_primary(parser);
     if (!node) return NULL;
     
     for (;;) {
         if (parser_match(parser, TOKEN_OPEN_PAREN)) {
-            rvn_node* call = node_create(NODE_CALL, parser->previous.line, parser->previous.column);
+            csq_node* call = node_create(NODE_CALL, parser->previous.line, parser->previous.column);
             if (!call) return node;
             
             call->data.call.callee = node;
@@ -117,7 +128,7 @@ rvn_node* expr_parse_postfix(rvn_parser* parser) {
             
             if (!parser_check(parser, TOKEN_CLOSE_PAREN)) {
                 do {
-                    rvn_node* arg = expr_parse(parser);
+                    csq_node* arg = expr_parse(parser);
                     if (arg) node_list_add(&call->data.call.args, arg);
                 } while (parser_match(parser, TOKEN_COMMA));
             }
@@ -125,7 +136,7 @@ rvn_node* expr_parse_postfix(rvn_parser* parser) {
             parser_consume(parser, TOKEN_CLOSE_PAREN, "Expected ')' after arguments");
             node = call;
         } else if (parser_match(parser, TOKEN_OPEN_BRACKET)) {
-            rvn_node* index = node_create(NODE_INDEX, parser->previous.line, parser->previous.column);
+            csq_node* index = node_create(NODE_INDEX, parser->previous.line, parser->previous.column);
             if (!index) return node;
             
             index->data.index.object = node;
@@ -134,7 +145,7 @@ rvn_node* expr_parse_postfix(rvn_parser* parser) {
             parser_consume(parser, TOKEN_CLOSE_BRACKET, "Expected ']' after index");
             node = index;
         } else if (parser_match(parser, TOKEN_DOT)) {
-            rvn_node* access = node_create(NODE_ACCESS, parser->previous.line, parser->previous.column);
+            csq_node* access = node_create(NODE_ACCESS, parser->previous.line, parser->previous.column);
             if (!access) return node;
             
             access->data.access.object = node;
@@ -152,17 +163,25 @@ rvn_node* expr_parse_postfix(rvn_parser* parser) {
     return node;
 }
 
-rvn_node* expr_parse_unary(rvn_parser* parser) {
+csq_node* expr_parse_unary(csq_parser* parser) {
     if (parser_match(parser, TOKEN_MINUS)) {
-        rvn_node* node = node_create(NODE_UNARY_OP, parser->previous.line, parser->previous.column);
+        csq_node* node = node_create(NODE_UNARY_OP, parser->previous.line, parser->previous.column);
         if (!node) return NULL;
         node->data.unary.op = UNOP_NEG;
         node->data.unary.operand = expr_parse_unary(parser);
         return node;
     }
     
+    if (parser_match(parser, TOKEN_BANG)) {
+        csq_node* node = node_create(NODE_UNARY_OP, parser->previous.line, parser->previous.column);
+        if (!node) return NULL;
+        node->data.unary.op = UNOP_NOT;
+        node->data.unary.operand = expr_parse_unary(parser);
+        return node;
+    }
+    
     if (parser_match(parser, TOKEN_INCREMENT)) {
-        rvn_node* node = node_create(NODE_UNARY_OP, parser->previous.line, parser->previous.column);
+        csq_node* node = node_create(NODE_UNARY_OP, parser->previous.line, parser->previous.column);
         if (!node) return NULL;
         node->data.unary.op = UNOP_PRE_INC;
         node->data.unary.operand = expr_parse_unary(parser);
@@ -170,7 +189,7 @@ rvn_node* expr_parse_unary(rvn_parser* parser) {
     }
     
     if (parser_match(parser, TOKEN_DECREMENT)) {
-        rvn_node* node = node_create(NODE_UNARY_OP, parser->previous.line, parser->previous.column);
+        csq_node* node = node_create(NODE_UNARY_OP, parser->previous.line, parser->previous.column);
         if (!node) return NULL;
         node->data.unary.op = UNOP_PRE_DEC;
         node->data.unary.operand = expr_parse_unary(parser);
@@ -180,8 +199,8 @@ rvn_node* expr_parse_unary(rvn_parser* parser) {
     return expr_parse_postfix(parser);
 }
 
-rvn_node* expr_parse_multiplicative(rvn_parser* parser) {
-    rvn_node* node = expr_parse_unary(parser);
+csq_node* expr_parse_multiplicative(csq_parser* parser) {
+    csq_node* node = expr_parse_unary(parser);
     if (!node) return NULL;
     
     for (;;) {
@@ -192,8 +211,8 @@ rvn_node* expr_parse_multiplicative(rvn_parser* parser) {
         else break;
         
         
-        rvn_node* right = expr_parse_unary(parser);
-        rvn_node* bin = node_create(NODE_BINARY_OP, parser->previous.line, parser->previous.column);
+        csq_node* right = expr_parse_unary(parser);
+        csq_node* bin = node_create(NODE_BINARY_OP, parser->previous.line, parser->previous.column);
         if (!bin) return node;
         
         bin->data.binary.op = op;
@@ -205,8 +224,8 @@ rvn_node* expr_parse_multiplicative(rvn_parser* parser) {
     return node;
 }
 
-rvn_node* expr_parse_additive(rvn_parser* parser) {
-    rvn_node* node = expr_parse_multiplicative(parser);
+csq_node* expr_parse_additive(csq_parser* parser) {
+    csq_node* node = expr_parse_multiplicative(parser);
     if (!node) return NULL;
     
     for (;;) {
@@ -216,8 +235,8 @@ rvn_node* expr_parse_additive(rvn_parser* parser) {
         else break;
         
         
-        rvn_node* right = expr_parse_multiplicative(parser);
-        rvn_node* bin = node_create(NODE_BINARY_OP, parser->previous.line, parser->previous.column);
+        csq_node* right = expr_parse_multiplicative(parser);
+        csq_node* bin = node_create(NODE_BINARY_OP, parser->previous.line, parser->previous.column);
         if (!bin) return node;
         
         bin->data.binary.op = op;
@@ -229,8 +248,8 @@ rvn_node* expr_parse_additive(rvn_parser* parser) {
     return node;
 }
 
-rvn_node* expr_parse_comparison(rvn_parser* parser) {
-    rvn_node* node = expr_parse_additive(parser);
+csq_node* expr_parse_comparison(csq_parser* parser) {
+    csq_node* node = expr_parse_additive(parser);
     if (!node) return NULL;
     
     for (;;) {
@@ -246,8 +265,8 @@ rvn_node* expr_parse_comparison(rvn_parser* parser) {
         else break;
         
         
-        rvn_node* right = expr_parse_additive(parser);
-        rvn_node* bin = node_create(NODE_BINARY_OP, parser->previous.line, parser->previous.column);
+        csq_node* right = expr_parse_additive(parser);
+        csq_node* bin = node_create(NODE_BINARY_OP, parser->previous.line, parser->previous.column);
         if (!bin) return node;
         
         bin->data.binary.op = op;
@@ -259,8 +278,8 @@ rvn_node* expr_parse_comparison(rvn_parser* parser) {
     return node;
 }
 
-rvn_node* expr_parse_equality(rvn_parser* parser) {
-    rvn_node* node = expr_parse_comparison(parser);
+csq_node* expr_parse_equality(csq_parser* parser) {
+    csq_node* node = expr_parse_bitwise_or(parser);
     if (!node) return NULL;
     
     for (;;) {
@@ -270,8 +289,8 @@ rvn_node* expr_parse_equality(rvn_parser* parser) {
         else if (parser_match(parser, TOKEN_NOT_EQUAL))
          op = BINOP_NE;
         else break;
-        rvn_node* right = expr_parse_comparison(parser);
-        rvn_node* bin = node_create(NODE_BINARY_OP, parser->previous.line, parser->previous.column);
+        csq_node* right = expr_parse_bitwise_or(parser);
+        csq_node* bin = node_create(NODE_BINARY_OP, parser->previous.line, parser->previous.column);
         if (!bin) return node;
         
         bin->data.binary.op = op;
@@ -283,13 +302,67 @@ rvn_node* expr_parse_equality(rvn_parser* parser) {
     return node;
 }
 
-rvn_node* expr_parse_and(rvn_parser* parser) {
-    rvn_node* node = expr_parse_equality(parser);
+csq_node* expr_parse_bitwise_or(csq_parser* parser) {
+    csq_node* node = expr_parse_bitwise_xor(parser);
     if (!node) return NULL;
     
-    while (parser_match(parser, TOKEN_KEYWORD_AND)) {
-        rvn_node* right = expr_parse_equality(parser);
-        rvn_node* bin = node_create(NODE_BINARY_OP, parser->previous.line, parser->previous.column);
+    while (parser_match(parser, TOKEN_PIPE)) {
+        csq_node* right = expr_parse_bitwise_xor(parser);
+        csq_node* bin = node_create(NODE_BINARY_OP, parser->previous.line, parser->previous.column);
+        if (!bin) return node;
+        
+        bin->data.binary.op = BINOP_BIT_OR;
+        bin->data.binary.left = node;
+        bin->data.binary.right = right;
+        node = bin;
+    }
+    
+    return node;
+}
+
+csq_node* expr_parse_bitwise_xor(csq_parser* parser) {
+    csq_node* node = expr_parse_bitwise_and(parser);
+    if (!node) return NULL;
+    
+    while (parser_match(parser, TOKEN_CARET)) {
+        csq_node* right = expr_parse_bitwise_and(parser);
+        csq_node* bin = node_create(NODE_BINARY_OP, parser->previous.line, parser->previous.column);
+        if (!bin) return node;
+        
+        bin->data.binary.op = BINOP_BIT_XOR;
+        bin->data.binary.left = node;
+        bin->data.binary.right = right;
+        node = bin;
+    }
+    
+    return node;
+}
+
+csq_node* expr_parse_bitwise_and(csq_parser* parser) {
+    csq_node* node = expr_parse_comparison(parser);
+    if (!node) return NULL;
+    
+    while (parser_match(parser, TOKEN_AMPERSAND)) {
+        csq_node* right = expr_parse_comparison(parser);
+        csq_node* bin = node_create(NODE_BINARY_OP, parser->previous.line, parser->previous.column);
+        if (!bin) return node;
+        
+        bin->data.binary.op = BINOP_BIT_AND;
+        bin->data.binary.left = node;
+        bin->data.binary.right = right;
+        node = bin;
+    }
+    
+    return node;
+}
+
+csq_node* expr_parse_and(csq_parser* parser) {
+    csq_node* node = expr_parse_equality(parser);
+    if (!node) return NULL;
+    
+    while (parser_match(parser, TOKEN_KEYWORD_AND) || parser_match(parser, TOKEN_LOGICAL_AND)) {
+        csq_node* right = expr_parse_equality(parser);
+        csq_node* bin = node_create(NODE_BINARY_OP, parser->previous.line, parser->previous.column);
         if (!bin) return node;
         
         bin->data.binary.op = BINOP_AND;
@@ -301,13 +374,13 @@ rvn_node* expr_parse_and(rvn_parser* parser) {
     return node;
 }
 
-rvn_node* expr_parse_or(rvn_parser* parser) {
-    rvn_node* node = expr_parse_and(parser);
+csq_node* expr_parse_or(csq_parser* parser) {
+    csq_node* node = expr_parse_and(parser);
     if (!node) return NULL;
     
-    while (parser_match(parser, TOKEN_KEYWORD_OR)) {
-        rvn_node* right = expr_parse_and(parser);
-        rvn_node* bin = node_create(NODE_BINARY_OP, parser->previous.line, parser->previous.column);
+    while (parser_match(parser, TOKEN_KEYWORD_OR) || parser_match(parser, TOKEN_LOGICAL_OR)) {
+        csq_node* right = expr_parse_and(parser);
+        csq_node* bin = node_create(NODE_BINARY_OP, parser->previous.line, parser->previous.column);
         if (!bin) return node;
         
         bin->data.binary.op = BINOP_OR;
@@ -319,8 +392,8 @@ rvn_node* expr_parse_or(rvn_parser* parser) {
     return node;
 }
 
-rvn_node* expr_parse_assignment(rvn_parser* parser) {
-    rvn_node* node = expr_parse_or(parser);
+csq_node* expr_parse_assignment(csq_parser* parser) {
+    csq_node* node = expr_parse_or(parser);
     if (!node) return NULL;
     binary_op op;
     if (parser_match(parser, TOKEN_ASSIGN))
@@ -336,8 +409,8 @@ rvn_node* expr_parse_assignment(rvn_parser* parser) {
     else return node;
     
     
-    rvn_node* right = expr_parse_assignment(parser);
-    rvn_node* bin = node_create(NODE_BINARY_OP, parser->previous.line, parser->previous.column);
+    csq_node* right = expr_parse_assignment(parser);
+    csq_node* bin = node_create(NODE_BINARY_OP, parser->previous.line, parser->previous.column);
     if (!bin) return node;
     
     bin->data.binary.op = op;
@@ -346,6 +419,6 @@ rvn_node* expr_parse_assignment(rvn_parser* parser) {
     return bin;
 }
 
-rvn_node* expr_parse(rvn_parser* parser) {
+csq_node* expr_parse(csq_parser* parser) {
     return expr_parse_assignment(parser);
 }

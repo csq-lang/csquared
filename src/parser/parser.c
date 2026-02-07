@@ -1,10 +1,29 @@
+/**
+ * @file parser.c
+ * @brief Main parser implementation
+ * @details Implements the main parser logic including token consumption,
+ * error handling, panic mode recovery, and top-level statement parsing.
+ * Orchestrates the various parsing functions for different language constructs.
+ */
+
 #include <parser/parser.h>
 #include <parser/expr.h>
+#include <parser/func.h>
+#include <parser/var.h>
+#include <parser/stmt.h>
+#include <parser/struct.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
 
-rvn_parser* parser_create(rvn_lexer* lexer, DiagReporter* diag) {
-    rvn_parser* parser = calloc(1, sizeof(rvn_parser));
+/**
+ * @brief Create a new parser instance
+ * @param lexer Lexer to tokenize input
+ * @param diag Diagnostic reporter for errors
+ * @return Allocated parser, or NULL on failure
+ */
+csq_parser* parser_create(csq_lexer* lexer, DiagReporter* diag) {
+    csq_parser* parser = calloc(1, sizeof(csq_parser));
     if (!parser) return NULL;
     
     parser->lexer = lexer;
@@ -18,7 +37,11 @@ rvn_parser* parser_create(rvn_lexer* lexer, DiagReporter* diag) {
     return parser;
 }
 
-void parser_free(rvn_parser* parser) {
+/**
+ * @brief Free parser resources
+ * @param parser Parser to deallocate
+ */
+void parser_free(csq_parser* parser) {
     if (!parser) return;
     if (parser->ast) {
         ast_context_free(parser->ast);
@@ -26,7 +49,11 @@ void parser_free(rvn_parser* parser) {
     free(parser);
 }
 
-void parser_advance(rvn_parser* parser) {
+/**
+ * @brief Advance to next token, skipping errors
+ * @param parser Parser instance
+ */
+void parser_advance(csq_parser* parser) {
     parser->previous = parser->current;
     
     for (;;) {
@@ -37,17 +64,35 @@ void parser_advance(rvn_parser* parser) {
     }
 }
 
-bool parser_check(rvn_parser* parser, TokenType type) {
+/**
+ * @brief Check current token type without consuming
+ * @param parser Parser instance
+ * @param type Token type to check for
+ * @return True if current token matches type
+ */
+bool parser_check(csq_parser* parser, csq_tktype type) {
     return parser->current.type == type;
 }
 
-bool parser_match(rvn_parser* parser, TokenType type) {
-    if (!parser_check(parser, type)) return false;
+/**
+ * @brief Consume token if it matches type
+ * @param parser Parser instance
+ * @param type Token type to match
+ * @return True if token matched and was consumed
+ */
+bool parser_match(csq_parser* parser, csq_tktype type) {
+    if (parser->current.type != type) return false;
     parser_advance(parser);
     return true;
 }
 
-void parser_consume(rvn_parser* parser, TokenType type, const char* message) {
+/**
+ * @brief Consume expected token or report error
+ * @param parser Parser instance
+ * @param type Expected token type
+ * @param message Error message if not found
+ */
+void parser_consume(csq_parser* parser, csq_tktype type, const char* message) {
     if (parser->current.type == type) {
         parser_advance(parser);
         return;
@@ -55,7 +100,7 @@ void parser_consume(rvn_parser* parser, TokenType type, const char* message) {
     parser_error(parser, message);
 }
 
-void parser_error_at(rvn_parser* parser, Token* token, const char* message) {
+void parser_error_at(csq_parser* parser, csq_token* token, const char* message) {
     if (parser->panic_mode) return;
     parser->panic_mode = true;
     parser->had_error = true;
@@ -65,11 +110,22 @@ void parser_error_at(rvn_parser* parser, Token* token, const char* message) {
                       token->length, NULL, message);
 }
 
-void parser_error(rvn_parser* parser, const char* message) {
+void parser_error_at_location(csq_parser* parser, DiagErrorType type,
+                              size_t line, size_t column, size_t length,
+                              const char* message) {
+    if (parser->panic_mode) return;
+    parser->panic_mode = true;
+    parser->had_error = true;
+    
+    diag_report_error(parser->diag, type, parser->lexer->path, line, column,
+                      length, NULL, message);
+}
+
+void parser_error(csq_parser* parser, const char* message) {
     parser_error_at(parser, &parser->current, message);
 }
 
-void parser_synchronize(rvn_parser* parser) {
+void parser_synchronize(csq_parser* parser) {
     parser->panic_mode = false;
     
     while (parser->current.type != TOKEN_EOF) {
@@ -79,12 +135,15 @@ void parser_synchronize(rvn_parser* parser) {
             case TOKEN_KEYWORD_FUNCTION:
             case TOKEN_KEYWORD_FUNC:
             case TOKEN_KEYWORD_IF:
+            case TOKEN_KEYWORD_ELSE:
             case TOKEN_KEYWORD_WHILE:
             case TOKEN_KEYWORD_FOR:
             case TOKEN_KEYWORD_RETURN:
             case TOKEN_KEYWORD_STRUCT:
             case TOKEN_KEYWORD_ENUM:
             case TOKEN_KEYWORD_IMPORT:
+            case TOKEN_OPEN_BRACE:
+            case TOKEN_CLOSE_BRACE:
                 return;
             default:
                 break;
@@ -94,13 +153,13 @@ void parser_synchronize(rvn_parser* parser) {
     }
 }
 
-rvn_node* parser_parse_expression(rvn_parser* parser) {
+csq_node* parser_parse_expression(csq_parser* parser) {
     return expr_parse(parser);
 }
 
-rvn_node* parse_identifier_node(rvn_parser* parser) {
-    Token token = parser->previous;
-    rvn_node* node = node_create(NODE_IDENTIFIER, token.line, token.column);
+csq_node* parse_identifier_node(csq_parser* parser) {
+    csq_token token = parser->previous;
+    csq_node* node = node_create(NODE_IDENTIFIER, token.line, token.column);
     if (!node) return NULL;
     
     char* name = malloc(token.length + 1);
@@ -116,275 +175,30 @@ rvn_node* parse_identifier_node(rvn_parser* parser) {
     return node;
 }
 
-rvn_node* parse_block(rvn_parser* parser) {
-    rvn_node* block = node_create(NODE_BLOCK, parser->previous.line, parser->previous.column);
-    if (!block) return NULL;
+csq_node* parser_parse_statement(csq_parser* parser) {
     
-    node_list_init(&block->data.block.statements);
-    
-    while (!parser_check(parser, TOKEN_CLOSE_BRACE) && !parser_check(parser, TOKEN_EOF)) {
-        rvn_node* stmt = parser_parse_statement(parser);
-        if (stmt) node_list_add(&block->data.block.statements, stmt);
-    }
-    
-    parser_consume(parser, TOKEN_CLOSE_BRACE, "Expected '}' after block");
-    return block;
-}
-
-rvn_node* parse_if_statement(rvn_parser* parser) {
-    rvn_node* node = node_create(NODE_IF, parser->previous.line, parser->previous.column);
-    if (!node) return NULL;
-    
-    node->data.if_stmt.condition = parser_parse_expression(parser);
-    
-    parser_consume(parser, TOKEN_OPEN_BRACE, "Expected '{' after if condition");
-    node->data.if_stmt.then_branch = parse_block(parser);
-    
-    if (parser_match(parser, TOKEN_KEYWORD_ELSE)) {
-        if (parser_match(parser, TOKEN_KEYWORD_IF)) {
-            node->data.if_stmt.else_branch = parse_if_statement(parser);
-        } else {
-            parser_consume(parser, TOKEN_OPEN_BRACE, "Expected '{' after else");
-            node->data.if_stmt.else_branch = parse_block(parser);
-        }
-    }
-    
-    return node;
-}
-
-rvn_node* parse_while_statement(rvn_parser* parser) {
-    rvn_node* node = node_create(NODE_WHILE, parser->previous.line, parser->previous.column);
-    if (!node) return NULL;
-    
-    node->data.while_stmt.condition = parser_parse_expression(parser);
-    
-    parser_consume(parser, TOKEN_OPEN_BRACE, "Expected '{' after while condition");
-    node->data.while_stmt.body = parse_block(parser);
-    
-    return node;
-}
-
-rvn_node* parse_for_statement(rvn_parser* parser) {
-    rvn_node* node = node_create(NODE_FOR, parser->previous.line, parser->previous.column);
-    if (!node) return NULL;
-    
-    parser_consume(parser, TOKEN_IDENTIFIER, "Expected identifier after for");
-    node->data.for_stmt.var = parse_identifier_node(parser);
-    
-    parser_consume(parser, TOKEN_KEYWORD_IN, "Expected 'in' after for variable");
-    node->data.for_stmt.iterable = parser_parse_expression(parser);
-    
-    parser_consume(parser, TOKEN_OPEN_BRACE, "Expected '{' after for iterable");
-    node->data.for_stmt.body = parse_block(parser);
-    
-    return node;
-}
-
-rvn_node* parse_return_statement(rvn_parser* parser) {
-    rvn_node* node = node_create(NODE_RETURN, parser->previous.line, parser->previous.column);
-    if (!node) return NULL;
-    
-    if (!parser_check(parser, TOKEN_SEMICOLON) && !parser_check(parser, TOKEN_CLOSE_BRACE)) 
-        node->data.return_stmt.value = parser_parse_expression(parser);
-    
-    
-    return node;
-}
-
-rvn_node* parse_var_declaration(rvn_parser* parser, bool is_const) {
-    
-    Token type_token = parser->current;
-    parser_advance(parser);
-    
-    
-    Token name_token = parser->current;
-    parser_consume(parser, TOKEN_IDENTIFIER, "Expected variable name");
-    
-    rvn_node* node;
-    if (is_const) 
-        node = node_create(NODE_CONST_DECL, name_token.line, name_token.column);
-    else 
-        node = node_create(NODE_VAR_DECL, name_token.line, name_token.column);
-    
-    if (!node) return NULL;
-    
-    
-    parser->previous = name_token;
-    node->data.var_decl.name = parse_identifier_node(parser);
-    node->data.var_decl.is_mutable = !is_const;
-    
-    
-    rvn_node* type_spec = node_create(NODE_TYPE_SPEC, type_token.line, type_token.column);
-    if (type_spec) {
-        parser->previous = type_token;
-        type_spec->data.type_spec.base = parse_identifier_node(parser);
-        node_list_init(&type_spec->data.type_spec.args);
-        node->data.var_decl.type_spec = type_spec;
-    }
-    
-    if (parser_match(parser, TOKEN_ASSIGN)) 
-        node->data.var_decl.init = parser_parse_expression(parser);
-    else if (is_const) 
-        parser_error(parser, "Constants must be initialized");
-    
-    
-    return node;
-}
-
-rvn_node* parse_function_declaration(rvn_parser* parser) {
-    Token name_token = parser->current;
-    parser_consume(parser, TOKEN_IDENTIFIER, "Expected function name");
-    
-    rvn_node* node = node_create(NODE_FUNCTION_DECL, name_token.line, name_token.column);
-    if (!node) return NULL;
-    
-    node->data.function_decl.name = parse_identifier_node(parser);
-    node_list_init(&node->data.function_decl.params);
-    node_list_init(&node->data.function_decl.generics);
-    
-    parser_consume(parser, TOKEN_OPEN_PAREN, "Expected '(' after function name");
-    
-    if (!parser_check(parser, TOKEN_CLOSE_PAREN)) {
-        do {
-            Token param_token = parser->current;
-            parser_consume(parser, TOKEN_IDENTIFIER, "Expected parameter name");
-            
-            rvn_node* param = node_create(NODE_PARAM, param_token.line, param_token.column);
-            if (!param) continue;
-            
-            param->data.param.name = parse_identifier_node(parser);
-            
-            if (parser_match(parser, TOKEN_COLON)) 
-                param->data.param.type_spec = parse_type_spec(parser);
-            if (parser_match(parser, TOKEN_ASSIGN)) 
-                param->data.param.default_val = parser_parse_expression(parser);
-            
-            
-            node_list_add(&node->data.function_decl.params, param);
-        } while (parser_match(parser, TOKEN_COMMA));
-    }
-    
-    parser_consume(parser, TOKEN_CLOSE_PAREN, "Expected ')' after parameters");
-    
-    if (parser_match(parser, TOKEN_COLON)) {
-        node->data.function_decl.return_type = parse_type_spec(parser);
-    }
-    
-    parser_consume(parser, TOKEN_OPEN_BRACE, "Expected '{' before function body");
-    node->data.function_decl.body = parse_block(parser);
-    
-    return node;
-}
-
-rvn_node* parse_func_declaration(rvn_parser* parser) {
-    Token name_token = parser->current;
-    parser_consume(parser, TOKEN_IDENTIFIER, "Expected function name");
-    
-    rvn_node* node = node_create(NODE_FUNCTION_DECL, name_token.line, name_token.column);
-    if (!node) return NULL;
-    
-    node->data.function_decl.name = parse_identifier_node(parser);
-    node_list_init(&node->data.function_decl.params);
-    node_list_init(&node->data.function_decl.generics);
-    
-    parser_consume(parser, TOKEN_OPEN_PAREN, "Expected '(' after function name");
-    
-    if (!parser_check(parser, TOKEN_CLOSE_PAREN)) {
-        do {
-            rvn_node* param = node_create(NODE_PARAM, parser->current.line, parser->current.column);
-            if (!param) continue;
-            
-            param->data.param.type_spec = parse_type_spec(parser);
-            
-            parser_consume(parser, TOKEN_IDENTIFIER, "Expected parameter name");
-            param->data.param.name = parse_identifier_node(parser);
-            
-            if (parser_match(parser, TOKEN_ASSIGN)) {
-                param->data.param.default_val = parser_parse_expression(parser);
-            }
-            
-            node_list_add(&node->data.function_decl.params, param);
-        } while (parser_match(parser, TOKEN_COMMA));
-    }
-    
-    parser_consume(parser, TOKEN_CLOSE_PAREN, "Expected ')' after parameters");
-    
-    if (parser_match(parser, TOKEN_ARROW)) {
-        node->data.function_decl.return_type = parse_type_spec(parser);
-    }
-    
-    parser_consume(parser, TOKEN_OPEN_BRACE, "Expected '{' before function body");
-    node->data.function_decl.body = parse_block(parser);
-    
-    return node;
-}
-
-rvn_node* parse_type_spec(rvn_parser* parser) {
-    rvn_node* node = node_create(NODE_TYPE_SPEC, parser->current.line, parser->current.column);
-    if (!node) return NULL;
-    
-    
-    if (parser_match(parser, TOKEN_OPEN_BRACKET)) {
-        rvn_node* elem_type = parse_type_spec(parser);
-        parser_consume(parser, TOKEN_SEMICOLON, "Expected ';' in array type");
-        parser_consume(parser, TOKEN_NUMBER, "Expected array size");
-        Token size_token = parser->previous;
-        parser_consume(parser, TOKEN_CLOSE_BRACKET, "Expected ']' after array type");
-        
-        node->data.type_spec.base = elem_type;
-        node_list_init(&node->data.type_spec.args);
-        
-        rvn_node* size_node = node_create(NODE_LITERAL_INT, size_token.line, size_token.column);
-        char* end;
-        size_node->data.literal_int.value = strtoll(size_token.start, &end, 0);
-        node_list_add(&node->data.type_spec.args, size_node);
-        
-        return node;
-    }
-    
-    
-    if (parser_match(parser, TOKEN_IDENTIFIER) ||
-        parser_match(parser, TOKEN_KEYWORD_INT) ||
-        parser_match(parser, TOKEN_KEYWORD_STRING) ||
-        parser_match(parser, TOKEN_KEYWORD_FLOAT)) {
-        node->data.type_spec.base = parse_identifier_node(parser);
-    } else {
-        parser_error(parser, "Expected type name");
-        return node;
-    }
-    
-    node_list_init(&node->data.type_spec.args);
-    
-    return node;
-}
-
-rvn_node* parser_parse_statement(rvn_parser* parser) {
-    
-    if (parser_check(parser, TOKEN_KEYWORD_INT) ||
+    if (parser_check(parser, TOKEN_KEYWORD_BOOL) ||
+        parser_check(parser, TOKEN_KEYWORD_INT) ||
         parser_check(parser, TOKEN_KEYWORD_STRING) ||
-        parser_check(parser, TOKEN_KEYWORD_FLOAT)) {
+        parser_check(parser, TOKEN_KEYWORD_FLOAT) ||
+        parser_check(parser, TOKEN_OPEN_BRACKET)) {
         return parse_var_declaration(parser, false);
     }
     
     if (parser_match(parser, TOKEN_KEYWORD_IF)) {
-        rvn_node* node = parse_if_statement(parser);
+        csq_node* node = parse_if_statement(parser);
         return node;
     }
     
     if (parser_match(parser, TOKEN_KEYWORD_WHILE)) {
-        rvn_node* node = parse_while_statement(parser);
+        csq_node* node = parse_while_statement(parser);
         return node;
     }
     
-    if (parser_match(parser, TOKEN_KEYWORD_FOR)) {
-        rvn_node* node = parse_for_statement(parser);
-        return node;
-    }
-    
-    if (parser_match(parser, TOKEN_KEYWORD_RETURN)) {
-        rvn_node* node = parse_return_statement(parser);
-        return node;
-    }
+     if (parser_match(parser, TOKEN_KEYWORD_RETURN)) {
+         csq_node* node = parse_return_statement(parser);
+         return node;
+     }
     
     if (parser_match(parser, TOKEN_OPEN_BRACE)) 
         return parse_block(parser);
@@ -393,18 +207,7 @@ rvn_node* parser_parse_statement(rvn_parser* parser) {
     return parse_expression_statement(parser);
 }
 
-rvn_node* parse_expression_statement(rvn_parser* parser) {
-    rvn_node* expr = parser_parse_expression(parser);
-    if (!expr) return NULL;
-    
-    rvn_node* node = node_create(NODE_EXPR_STMT, expr->line, expr->column);
-    if (!node) return expr;
-    
-    node->data.expr_stmt.expr = expr;
-    return node;
-}
-
-rvn_node* parser_parse_declaration(rvn_parser* parser) {
+csq_node* parser_parse_declaration(csq_parser* parser) {
     if (parser_match(parser, TOKEN_KEYWORD_FUNCTION)) 
         return parse_function_declaration(parser);
     
@@ -429,7 +232,7 @@ rvn_node* parser_parse_declaration(rvn_parser* parser) {
     return NULL;
 }
 
-ast_context* parser_parse(rvn_parser* parser) {
+ast_context* parser_parse(csq_parser* parser) {
     parser->ast = ast_context_create();
     if (!parser->ast) return NULL;
     
@@ -441,11 +244,11 @@ ast_context* parser_parse(rvn_parser* parser) {
     }
     
     while (!parser_check(parser, TOKEN_EOF)) {
-        rvn_node* decl = parser_parse_declaration(parser);
+        csq_node* decl = parser_parse_declaration(parser);
         if (decl) 
             node_list_add(&parser->ast->root->data.program.statements, decl);
           else {
-            rvn_node* stmt = parser_parse_statement(parser);
+            csq_node* stmt = parser_parse_statement(parser);
             if (stmt)
                 node_list_add(&parser->ast->root->data.program.statements, stmt);
             else

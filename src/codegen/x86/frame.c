@@ -1,3 +1,10 @@
+/**
+ * @file frame.c
+ * @brief Stack frame management
+ * @details Manages function stack frames including prologue/epilogue,
+ * local variable allocation, and parameter passing.
+ */
+
 #include <codegen/x86/frame.h>
 #include <codegen/x86/inst.h>
 #include <codegen/x86/emit.h>
@@ -53,7 +60,7 @@ void frame_end_function(frame_ctx* frame) {
 int frame_alloc_local(frame_ctx* frame, int size) {
     if (!frame) return 0;
     
-    int aligned_size = (size + 3) & ~3;
+    int aligned_size = (size + 15) & ~15;
     frame->current_offset -= aligned_size;
     frame->local_size += aligned_size;
     
@@ -100,12 +107,11 @@ void frame_emit_prologue(frame_ctx* frame, void* emit) {
     emit_ctx* ctx = (emit_ctx*)emit;
     if (!frame || !ctx) return;
     
-    inst_push_reg(ctx, REG_EBP);
-    inst_mov_reg_reg(ctx, REG_EBP, REG_ESP);
+    emit_line(ctx, "pushl %%ebp");
+    emit_line(ctx, "movl %%esp, %%ebp");
     
     if (frame->local_size > 0) {
-        int aligned_size = (frame->local_size + 15) & ~15;
-        inst_sub_reg_imm(ctx, REG_ESP, aligned_size);
+        emit_line(ctx, "subl $%d, %%esp", frame->local_size);
     }
 }
 
@@ -113,9 +119,9 @@ void frame_emit_epilogue(frame_ctx* frame, void* emit) {
     emit_ctx* ctx = (emit_ctx*)emit;
     if (!frame || !ctx) return;
     
-    inst_mov_reg_reg(ctx, REG_ESP, REG_EBP);
-    inst_pop_reg(ctx, REG_EBP);
-    inst_ret(ctx);
+    emit_line(ctx, "movl %%ebp, %%esp");
+    emit_line(ctx, "popl %%ebp");
+    emit_line(ctx, "ret");
 }
 
 int frame_get_stack_size(frame_ctx* frame) {

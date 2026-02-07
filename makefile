@@ -26,7 +26,7 @@ clean:
 
 # Print Makefile information
 info:
-	@echo "Raven Build Configuration:"
+	@echo "C² Build Configuration:"
 	@echo "  Compiler:   $(CC)"
 	@echo "  CFLAGS:     $(CFLAGS)"
 	@echo "  LDFLAGS:    $(LDFLAGS)"

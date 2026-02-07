@@ -1,6 +1,19 @@
+/**
+ * @file inst.c
+ * @brief x86 instruction emission helpers
+ * @details Provides functions to emit individual x86 instructions including
+ * moves, arithmetic, bitwise operations, and memory operations.
+ */
+
 #include <codegen/x86/inst.h>
 #include <stdio.h>
 
+/**
+ * @brief Emit register-to-register move instruction
+ * @param ctx Emitter context
+ * @param dst Destination register
+ * @param src Source register
+ */
 void inst_mov_reg_reg(emit_ctx* ctx, x86_reg dst, x86_reg src) {
     emit_instruction(ctx, "movl", "%s, %s", reg32_name(src), reg32_name(dst));
 }
