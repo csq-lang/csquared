@@ -49,4 +49,8 @@ if (count > 5) {
 }
 ```
 
+<!--
 ## Documentation
+- [Documentation](https://github.com/C2-Lang/csq-docs).
+- [Specification](https://github.com/C2-Lang/csq-spec).
+-->
