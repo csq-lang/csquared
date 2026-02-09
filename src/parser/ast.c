@@ -765,8 +765,8 @@ csq_node *ast_create_literal_bool(bool value) {
   return node;
 }
 
-csq_node *ast_create_literal_null(void) {
-  return node_create(NODE_LITERAL_NULL, 0, 0);
+csq_node *ast_create_literal_nil(void) {
+  return node_create(NODE_LITERAL_NIL, 0, 0);
 }
 
 csq_node *ast_create_literal_tag(const char *name, size_t len) {
@@ -1027,8 +1027,8 @@ const char *node_type_to_string(node_type type) {
     return "literal_string";
   case NODE_LITERAL_BOOL:
     return "literal_bool";
-  case NODE_LITERAL_NULL:
-    return "literal_null";
+  case NODE_LITERAL_NIL:
+    return "literal_nil";
   case NODE_LITERAL_TAG:
     return "literal_tag";
   case NODE_ARRAY_LITERAL:

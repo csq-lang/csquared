@@ -53,7 +53,7 @@ csq_node *ast_create_literal_int(long long value);
 csq_node *ast_create_literal_float(double value);
 csq_node *ast_create_literal_string(const char *value, size_t len);
 csq_node *ast_create_literal_bool(bool value);
-csq_node *ast_create_literal_null(void);
+csq_node *ast_create_literal_nil(void);
 csq_node *ast_create_literal_tag(const char *name, size_t len);
 csq_node *ast_create_array_literal(node_list *elements);
 csq_node *ast_create_map_literal(node_list *entries);
