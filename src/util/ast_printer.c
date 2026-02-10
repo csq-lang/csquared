@@ -296,7 +296,6 @@ void ast_print_type(const csq_type *type, FILE *out) {
   case TYPE_F64:
     fprintf(out, "f64");
     break;
-
   case TYPE_STRING:
     fprintf(out, "string");
     break;
