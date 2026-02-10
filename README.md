@@ -1,8 +1,5 @@
 <center><img src="assets/logo.png" width="200" style="border-radius: 12%;"></center>
 
-> [!WARNING]
-> You are currently in the **unstable** branch, for experimental features. It is not guaranteed to always work as intended, although code will **always** compile and run.
-
 # C² Language
 A simple and efficient programming language designed for modern software development.
 
