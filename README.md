@@ -1,6 +1,10 @@
 <center><img src="assets/logo.png" width="200" style="border-radius: 12%;"></center>
 
 # C² Language
+![](https://img.shields.io/github/actions/workflow/status/csq-lang/csquared/c.yml) 
+![](https://img.shields.io/github/last-commit/csq-lang/csquared) ![](https://img.shields.io/github/commit-activity/w/csq-lang/csquared)
+![](https://img.shields.io/github/stars/csq-lang/csquared) ![](https://img.shields.io/github/forks/csq-lang/csquared)
+
 A simple and efficient programming language designed for modern software development.
 
 ## Overview
