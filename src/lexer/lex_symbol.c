@@ -18,7 +18,7 @@ const struct {
 
 int symbol_count = sizeof(symbol_table) / sizeof(symbol_table[0]);
 
-token *lex_symbol(const char *p, int *len) {
+token *lex_symbol(const char *p, int *len, int *line, int *col) {
   int best_len = 0;
   token_type best_type = T_ERROR;
 
@@ -33,8 +33,12 @@ token *lex_symbol(const char *p, int *len) {
   if (best_len == 0) {
     best_len = 1;
     best_type = T_ERROR;
+    *len = best_len;
+    *col = (*col) + (*line);
+    return NULL;
   }
 
   *len = best_len;
-  return new_token(p, best_len, best_type);
+  *col = (*col) + (*line);
+  return new_token(p, best_len, best_type, *line, *col - *len);
 }

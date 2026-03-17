@@ -1,6 +1,7 @@
 #ifndef _LEXER_H
 #define _LEXER_H
 
+#include "csquare/error.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -93,13 +94,20 @@ struct token {
   const char *start;
   int length;
   token_type type;
+
+  int line;
+  int col;
+  error_type errtype;
+  const char *errmsg;
 };
 
 typedef struct token token;
 
-token *new_token(const char *start, int length, token_type type);
+token *new_token(const char *start, int length, token_type type, int line,
+                 int col);
 void free_token(token *tk);
-token *error_token(const char *msg);
+token *error_token(const char *msg, const char *src, int len, int line, int col,
+                   error_type errtype);
 
 typedef struct {
   token **tokens;
@@ -115,7 +123,7 @@ void add_token(token_list *list, token *tk);
 #define isdigit(c) (c >= '0' && c <= '9')
 #define isalpha(c) ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z'))
 
-#define LEX_FUNC_ARGS const char *p, int *len
+#define LEX_FUNC_ARGS const char *p, int *len, int *line, int *col
 token *lex_symbol(LEX_FUNC_ARGS);
 token *lex_digit(LEX_FUNC_ARGS);
 token *lex_string(LEX_FUNC_ARGS);

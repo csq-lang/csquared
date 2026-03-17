@@ -38,7 +38,7 @@ const struct {
 
 int keyword_count = sizeof(keyword_table) / sizeof(keyword_table[0]);
 
-token *lex_ident(const char *p, int *len) {
+token *lex_ident(const char *p, int *len, int *line, int *col) {
   char buf[64];
   int bufi = 0;
   token_type type = T_IDENTIFIER;
@@ -76,5 +76,6 @@ token *lex_ident(const char *p, int *len) {
 
   const char *start = p - bufi;
   *len = bufi;
-  return new_token(start, bufi, type);
+  *col = (*col) + (*len);
+  return new_token(start, bufi, type, *line, *col - *len);
 }
