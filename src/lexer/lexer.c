@@ -113,7 +113,7 @@ token_list *lex(const char *src) {
     sprintf(buf, msg, c);
     token *tk;
     token *errtk =
-        error_token(strdup(buf), p, 1, line, col, SYNERR_UNKNOWN_CHARACTER);
+        error_token(strdup(buf), p, 1, line, col - 1, SYNERR_UNKNOWN_CHARACTER);
 
     if (isdigit(c)) {
       tk = lex_digit(p, &consumed, &line, &col);
