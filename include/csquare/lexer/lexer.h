@@ -49,6 +49,7 @@
   T(T_SEMICOLON, "SEMICOLON")                                                  \
   T(T_AND, "AND")                                                              \
   T(T_OR, "OR")                                                                \
+  T(T_EXCLAMATION, "EXCLAMATION MARK")                                         \
                                                                                \
   T(T_KW_DO, "DO")                                                             \
   T(T_KW_IF, "IF")                                                             \
@@ -112,7 +113,7 @@ void add_token(token_list *list, token *tk);
 
 #define isws(c) (c == ' ' || c == '\t' || c == '\n' || c == '\r')
 #define isdigit(c) (c >= '0' && c <= '9')
-#define isalpha(c) (c >= 'a' && c <= 'z' || c >= 'A' && c <= 'Z')
+#define isalpha(c) ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z'))
 
 #define LEX_FUNC_ARGS const char *p, int *len
 token *lex_symbol(LEX_FUNC_ARGS);
