@@ -1,6 +1,8 @@
 #include "csquare/error.h"
 #include "csquare/lexer/lexer.h"
 #include "csquare/opt-common.h"
+#include "csquare/tests/tests.h"
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -65,6 +67,9 @@ int main(int argc, char *argv[]) {
   if (!opts)
     return EXIT_FAILURE;
 
+#ifdef CSQ_RUN_TESTS
+  tests_main();
+#else
   if (argc < 2) {
     fprintf(stderr, "Usage: %s <source-file>\n", argv[0]);
     return EXIT_FAILURE;
@@ -96,9 +101,11 @@ int main(int argc, char *argv[]) {
                                     highlight_start, highlight_len);
       print_error(&e);
     }
-  }
 
-  free_token_list(lexed);
-  free(src);
+    free_token_list(lexed);
+    free(src);
+  }
+#endif
+
   return 0;
 }
