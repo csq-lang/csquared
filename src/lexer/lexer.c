@@ -125,6 +125,7 @@ token_list *lex(const char *src) {
     add_token(list, tk);
   }
 
+  add_token(list, new_token(p, 0, T_EOF));
   return list;
 }
 

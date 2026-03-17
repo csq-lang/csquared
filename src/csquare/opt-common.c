@@ -9,6 +9,7 @@ static const opt_map_t opts[] = {{"--info", "-i", OPT_KIND_FUNC,
                                   handle_info}};
 
 static void handle_info(csq_options *opts, const char *_) {
+  (void)_;
   (void)opts;
   printf("Csquared - %s (%s)\n", CSQ_VERSION, __DATE__);
   printf("Authors: %s\n", CSQ_AUTHORS);

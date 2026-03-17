@@ -7,9 +7,11 @@ const struct {
     {"==", T_EQ},          {"!=", T_NEQ},          {">=", T_GREATER_EQUALS},
     {"<=", T_LESS_EQUALS}, {"+=", T_ADD_ASSIGN},   {"-=", T_SUB_ASSIGN},
     {"/=", T_DIV_ASSIGN},  {"*=", T_MUL_ASSIGN},   {"&&", T_AND},
-    {"||", T_OR},          {"=", T_ASSIGN},        {"+", T_ADD},
-    {"-", T_SUB},          {"/", T_DIV},           {"*", T_MUL},
-    {">", T_GREATER},      {"<", T_LESS},          {"(", T_OPEN_PAREN},
+    {"||", T_OR},
+
+    {"=", T_ASSIGN},       {"+", T_ADD},           {"-", T_SUB},
+    {"/", T_DIV},          {"*", T_MUL},           {">", T_GREATER},
+    {"<", T_LESS},         {"!", T_EXCLAMATION},   {"(", T_OPEN_PAREN},
     {")", T_CLOSE_PAREN},  {"{", T_OPEN_BRACE},    {"}", T_CLOSE_BRACE},
     {"[", T_OPEN_BRACKET}, {"]", T_CLOSE_BRACKET}, {".", T_PERIOD},
     {",", T_COMMA},        {":", T_COLON},         {";", T_SEMICOLON}};

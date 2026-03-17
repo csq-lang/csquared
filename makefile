@@ -1,9 +1,11 @@
 include config.mk
 
-.PHONY: all clean directories
+.PHONY: all clean directories rebuild
 
 # Default target
 all: directories $(TARGET)
+
+rebuild: clean all
 
 directories:
 	@mkdir -p $(BUILDDIR) $(BINDIR) $(shell find $(SRCDIR) -type d | sed 's/$(SRCDIR)/$(BUILDDIR)/')
