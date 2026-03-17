@@ -1,6 +1,7 @@
 #include "csquare/error.h"
 #include "csquare/lexer/lexer.h"
 #include "csquare/opt-common.h"
+#include "csquare/parser/parser.h"
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -98,7 +99,10 @@ int main(int argc, char *argv[]) {
     }
   }
 
+  parser *p = new_parser(lexed, filename, src);
+
   free_token_list(lexed);
+  free_parser(p);
   free(src);
   return 0;
 }
