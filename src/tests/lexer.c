@@ -1,14 +1,14 @@
 #include "csquare/lexer/lexer.h"
 #include "csquare/tests/tests.h"
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-int test_percent_error(void) {
+TEST(test_percent_error) {
   const char *src = "void main() {\n    %\n}";
   token_list *tokens = lex(src);
 
   token *percent = NULL;
+
   for (size_t i = 0; i < tokens->count; i++) {
     if (tokens->tokens[i]->start[0] == '%') {
       percent = tokens->tokens[i];
@@ -16,44 +16,48 @@ int test_percent_error(void) {
     }
   }
 
-  ASSERT(percent != NULL, "Percent token not found", NULL);
-  ASSERT(percent->type == T_ERROR, "Percent token type not ERROR", NULL);
-  ASSERT(percent->line == 2, "Percent token line mismatch (got %d)",
+  ASSERT(percent != NULL, "Percent token not found");
+  ASSERT(percent->type == T_ERROR, "Percent token type not ERROR");
+  ASSERT(percent->line == 2, "Line mismatch (got %d, expected 2)",
          percent->line);
-  ASSERT(percent->col == 5,
-         "Percent token column mismatch (got %d, expected %d)", percent->col,
-         5);
+  ASSERT(percent->col == 5, "Column mismatch (got %d, expected 5)",
+         percent->col);
+
   ASSERT(strcmp(percent->errmsg, "unknown character \x1b[32m'%'\x1b[0m") == 0,
-         "Percent token errmsg mismatch", NULL);
+         "Error message mismatch (got \"%s\")", percent->errmsg);
 
   free_token_list(tokens);
-  TEST_PASS;
   return 0;
 }
 
-int test_multiple_errors(void) {
+TEST(test_multiple_errors) {
   const char *src = "abc $ % @";
   token_list *tokens = lex(src);
 
   const char *expected_msgs[] = {"unknown character \x1b[32m'$'\x1b[0m",
                                  "unknown character \x1b[32m'%'\x1b[0m",
                                  "unknown character \x1b[32m'@'\x1b[0m"};
+
   int found = 0;
 
   for (size_t i = 0; i < tokens->count; i++) {
     token *tk = tokens->tokens[i];
+
     if (tk->type == T_ERROR) {
-      ASSERT(found < 3, "Too many error tokens found", NULL);
+      ASSERT(found < 3, "Too many error tokens found");
+
       ASSERT(strcmp(tk->errmsg, expected_msgs[found]) == 0,
-             "Error token message mismatch (got \"%s\", expected \"%s\")",
+             "Message mismatch\n"
+             "        got:      \"%s\"\n"
+             "        expected: \"%s\"",
              tk->errmsg, expected_msgs[found]);
+
       found++;
     }
   }
 
-  ASSERT(found == 3, "Did not find all expected error tokens", NULL);
+  ASSERT(found == 3, "Expected 3 error tokens, got %d", found);
 
   free_token_list(tokens);
-  TEST_PASS;
   return 0;
 }

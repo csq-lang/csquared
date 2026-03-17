@@ -68,7 +68,7 @@ int main(int argc, char *argv[]) {
     return EXIT_FAILURE;
 
 #ifdef CSQ_RUN_TESTS
-  tests_main();
+  return tests_main();
 #else
   if (argc < 2) {
     fprintf(stderr, "Usage: %s <source-file>\n", argv[0]);

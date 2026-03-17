@@ -1,17 +1,21 @@
 #include "csquare/tests/tests.h"
 #include "csquare/tests/lexer.h"
-#include <stdio.h>
+
+int tests_failed = 0;
 
 int tests_main(void) {
-  int failures = 0;
-  failures += test_percent_error();
-  failures += test_multiple_errors();
+  printf("\n=== C² Test Suite ===\n\n");
 
-  if (failures == 0) {
-    printf("All lexer tests \x1b[32mpassed\x1b[0m.\n");
+  RUN_TEST(test_multiple_errors);
+  RUN_TEST(test_percent_error);
+
+  printf("\n");
+
+  if (tests_failed == 0) {
+    printf(CLR_GREEN "All tests passed" CLR_RESET "\n\n");
     return 0;
   } else {
-    printf("\x1b[34m%d\x1b[0m lexer tests \x1b[31mfailed\x1b[0m.\n", failures);
+    printf(CLR_RED "%d test(s) failed" CLR_RESET "\n\n", tests_failed);
     return 1;
   }
 }
