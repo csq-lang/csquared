@@ -30,16 +30,17 @@ Download the latest version from the official repository and follow the platform
 ### Variables and Types
 
 ```c
-int count = 10
-float pi = 3.14159
-bool active = true
+int count = 10;
+double pi = 3.14159;
+bool active = true;
+ulong id = 9283721u;
 ```
 
 ### Functions
 
 ```c
-func add(int a, int b) -> int {
-    return a + b
+int add(int a, int b) {
+    return a + b;
 }
 ```
 
