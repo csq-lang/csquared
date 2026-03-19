@@ -29,14 +29,14 @@
 # -----------------------------------------------------------------------------
 /src/ @csq-lang/contributors
 /src/csquare/ @csq-lang/contributors
-/src/tests/ @csq-lang/testers
+/src/tests/ @csq-lang/contributors
 /src/lexer/ @csq-lang/contributors
 
 # -----------------------------------------------------------------------------
 # EXAMPLE CODE AND TESTS
 # -----------------------------------------------------------------------------
 /examples/ @csq-lang/contributors
-/include/csquare/tests/ @csq-lang/testers
+/include/csquare/tests/ @csq-lang/contributors
 
 #  HEADER FILES NEEDED IN THE LANGUAGE
 /include/csquare/ @csq-lang/contributors
@@ -44,5 +44,3 @@
 /include/csquare/parser/rules @csq-lang/contributors
 
 
-# Documentation
-/doc @csq-lang/documentation
