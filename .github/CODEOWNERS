@@ -2,7 +2,7 @@
 #
 # How to use:
 # Owners are set to GitHub org teams.
-# Team syntax: @csg-lang/<team-slug>
+# Team syntax: @csq-lang/<team-slug>
 #
 # Notes:
 # - Order matters: the last matching pattern wins.
@@ -12,37 +12,37 @@
 # -----------------------------------------------------------------------------
 # DEFAULT OWNERS (set this first)
 # -----------------------------------------------------------------------------
-* @csg-lang/maintainers
+* @csq-lang/maintainers
 
 # -----------------------------------------------------------------------------
 # REPO METADATA / SECURITY
 # -----------------------------------------------------------------------------
-/.github/ @csg-lang/maintainers
-/SECURITY.md @csg-lang/security
-/CHANGELOG.md @csg-lang/maintainers
-/CONTRIBUTE.md @csg-lang/contributors
-/CODE_OF_CONDUCT.md @csg-lang/maintainers
-/assets/ @csg-lang/documentation
+/.github/ @csq-lang/maintainers
+/SECURITY.md @csq-lang/security
+/CHANGELOG.md @csq-lang/maintainers
+/CONTRIBUTE.md @csq-lang/contributors
+/CODE_OF_CONDUCT.md @csq-lang/maintainers
+/assets/ @csq-lang/documentation
 
 # -----------------------------------------------------------------------------
 # MAIN LANGUAGE CODE
 # -----------------------------------------------------------------------------
-/src/ @csg-lang/contributors
-/src/csquare/ @csg-lang/contributors
-/src/tests/ @csg-lang/testers
-/src/lexer/ @csg-lang/contributors
+/src/ @csq-lang/contributors
+/src/csquare/ @csq-lang/contributors
+/src/tests/ @csq-lang/testers
+/src/lexer/ @csq-lang/contributors
 
 # -----------------------------------------------------------------------------
 # EXAMPLE CODE AND TESTS
 # -----------------------------------------------------------------------------
-/examples/ @csg-lang/contributors
-/include/csquare/tests/ @csg-lang/testers
+/examples/ @csq-lang/contributors
+/include/csquare/tests/ @csq-lang/testers
 
 #  HEADER FILES NEEDED IN THE LANGUAGE
-/include/csquare/ @csg-lang/contributors
-/include/csquare/lexer/ @csg-lang/contributors
-/include/csquare/parser/rules @csg-lang/contributors
+/include/csquare/ @csq-lang/contributors
+/include/csquare/lexer/ @csq-lang/contributors
+/include/csquare/parser/rules @csq-lang/contributors
 
 
 # Documentation
-/doc @csg-lang/documentation
+/doc @csq-lang/documentation
