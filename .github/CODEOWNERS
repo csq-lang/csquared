@@ -1,0 +1,46 @@
+# CODEOWNERS for
+#
+# How to use:
+# Owners are set to GitHub org teams.
+# Team syntax: @csq-lang/<team-slug>
+#
+# Notes:
+# - Order matters: the last matching pattern wins.
+# - This file is only enforced if you enable branch protection:
+#   Settings → Branches → Branch protection rules → “Require review from Code Owners”.
+
+# -----------------------------------------------------------------------------
+# DEFAULT OWNERS (set this first)
+# -----------------------------------------------------------------------------
+* @csq-lang/maintainers
+
+# -----------------------------------------------------------------------------
+# REPO METADATA / SECURITY
+# -----------------------------------------------------------------------------
+/.github/ @csq-lang/maintainers
+/SECURITY.md @csq-lang/security
+/CHANGELOG.md @csq-lang/maintainers
+/CONTRIBUTE.md @csq-lang/contributors
+/CODE_OF_CONDUCT.md @csq-lang/maintainers
+/assets/ @csq-lang/documentation
+
+# -----------------------------------------------------------------------------
+# MAIN LANGUAGE CODE
+# -----------------------------------------------------------------------------
+/src/ @csq-lang/contributors
+/src/csquare/ @csq-lang/contributors
+/src/tests/ @csq-lang/contributors
+/src/lexer/ @csq-lang/contributors
+
+# -----------------------------------------------------------------------------
+# EXAMPLE CODE AND TESTS
+# -----------------------------------------------------------------------------
+/examples/ @csq-lang/contributors
+/include/csquare/tests/ @csq-lang/contributors
+
+#  HEADER FILES NEEDED IN THE LANGUAGE
+/include/csquare/ @csq-lang/contributors
+/include/csquare/lexer/ @csq-lang/contributors
+/include/csquare/parser/rules @csq-lang/contributors
+
+
