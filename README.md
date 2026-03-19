@@ -1,74 +1,12 @@
 <center><img src="assets/logo.png" width="200" style="border-radius: 12%;"></center>
 
-# C² Language
-![](https://img.shields.io/github/actions/workflow/status/csq-lang/csquared/c.yml) 
-![](https://img.shields.io/github/last-commit/csq-lang/csquared) ![](https://img.shields.io/github/commit-activity/w/csq-lang/csquared)
-![](https://img.shields.io/github/stars/csq-lang/csquared) ![](https://img.shields.io/github/forks/csq-lang/csquared)
+> [!WARNING]
+> You are in the *unstable* branch.
 
-A simple and efficient programming language designed for modern software development.
+This branch's purpose is to test experimental/unstable features (thus the name *unstable*) before pushing them into *main* (the **stable** branch).
 
-## Overview
+If you compile code inside this branch, we are not liable of whatever bugs there are; **you have been warned**: the code in this branch is, as the name suggests, unstable, which can lead to *major issues* and *security bugs*.
+When you use binaries generated from the *unstable code*, it's your fault if something bad happens to your system. Note that we will try to warn about these issues so you can at least know they **CAN** happen if you really
+need to use code present here.
 
-C² is a compiled language that combines the performance of low-level languages with the simplicity and readability of high-level languages.
-
-## Features
-
-- Static typing with type inference
-- Memory safe compilation
-- Fast execution
-- Simple syntax
-- Cross-platform support
-
-## Getting Started
-
-### Installation
-
-Download the latest version from the official repository and follow the platform-specific installation guide.
-
-## Basic Syntax
-
-### Variables and Types
-
-```c
-int count = 10;
-double pi = 3.14159;
-bool active = true;
-ulong id = 9283721u;
-```
-
-### Functions
-
-```c
-int add(int a, int b) {
-    return a + b;
-}
-```
-
-### Control Flow
-
-```c
-if (count > 5) {
-    // Greater than
-} else {
-    // Less or Equal than 
-}
-```
-
-<!--
-## Documentation
-- [Documentation](https://github.com/C2-Lang/csq-docs).
-- [Specification](https://github.com/C2-Lang/csq-spec).
--->
-
-## Support/contact
-- Contact the founder of [@C2-Lang](https://github.com/csq-lang) [Nykenik24](Nykenik24@proton.me).
-- Open an [**issue**](https://github.com/csq-lang/csquared/issues).
-
-## Support the C squared team
-To support our incredible (but small) team, you can:
-- [Contribute](https://github.com/csq-lang/csquared/blob/main/CONTRIBUTE.md) to the compiler.
-- Star this repo (it **REALLY** helps!).
-
-## Star History
-
-[![Star History Chart](https://api.star-history.com/svg?repos=csq-lang/csquared&type=date&legend=top-left)](https://www.star-history.com/#csq-lang/csquared&type=date&legend=top-left)
+[Original README.md](https://github.com/csq-lang/csquared/blob/9ea218936cbea4d8241dea291a8cd8a0c2edcd8b/README.md)
