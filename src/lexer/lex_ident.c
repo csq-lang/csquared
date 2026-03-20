@@ -19,6 +19,8 @@ const struct {
                      {"type", T_KW_TYPE, 4},
                      {"goto", T_KW_GOTO, 4},
                      {"uint", T_KW_UINT, 4},
+                     {"true", T_KW_TRUE, 4},
+                     {"false", T_KW_FALSE, 5},
                      {"const", T_KW_CONST, 5},
                      {"float", T_KW_FLOAT, 5},
                      {"infer", T_KW_INFER, 5},

@@ -82,7 +82,9 @@
   T(T_KW_DEFAULT, "DEFAULT")                                                   \
   T(T_KW_SWITCH, "SWITCH")                                                     \
   T(T_KW_USHORT, "USHORT")                                                     \
-  T(T_KW_CONTINUE, "CONTINUE")
+  T(T_KW_CONTINUE, "CONTINUE")                                                 \
+  T(T_KW_TRUE, "TRUE")                                                         \
+  T(T_KW_FALSE, "FALSE")
 
 typedef enum { TOKEN_TYPES T__COUNT } token_type;
 
