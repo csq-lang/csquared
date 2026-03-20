@@ -3,61 +3,44 @@
 
 #include <stddef.h>
 
-typedef enum {
-  ERROR_NONE,
-  SYNERR_UNKNOWN_CHARACTER,
-  SYNERR_UNTERMINATED_STRING,
-  SYNERR_UNEXPECTED_TOKEN,
-  SYNERR_NOT_A_LITERAL,
-  SEMERR_LITERAL_NOT_AN_UINT,
-  INERR_CURR_NODE_NULL,
-  INERR_PARSED_NULL,
-  INERR_PEEK_OOB,
-  INERR_ARENA_ALLOC_NULL,
-  INERR_NULL_PTR
-} error_type;
+#define E(NAME, STR) NAME,
+#define ERROR_NAMES                                                            \
+  E(E_UNKNOWN, "unknown error")                                                \
+  E(E_UNKNOWN_CHARACTER, "unknown character")                                  \
+  E(E_UNTERMINATED_STRING, "unterminated string")                              \
+  E(E_UNEXPECTED_TOKEN, "unexpected token")                                    \
+  E(E_PEEK_OUT_OF_BOUNDS, "peek out of bounds")                                \
+  E(E_NULLPTR, "null pointer")
 
-typedef enum { ERROR_LEVEL_WARNING, ERROR_LEVEL_ERROR } error_level;
+typedef enum { ERROR_NAMES E__COUNT } error_type;
 
-typedef struct {
-  int line;
-  int col;
-} file_pos;
+#undef E
+
+extern const char *error_type_str[];
 
 typedef struct {
-  const char *ptr;
-  size_t len;
-} text_span;
-
-typedef struct {
-  const char *message;
   error_type type;
-  error_level level;
+  const char *filename;
+  int line;
 
-  const char *file;
-  file_pos pos;
+  int col;
+  bool has_col;
 
-  text_span line;
-  text_span highlight;
-} error_info;
+  char **notes;
+  size_t note_count;
+  size_t note_cap;
 
-error_info new_error_info(const char *msg, error_type type, error_level level,
-                          const char *file, int line, int col,
-                          const char *line_str, int highlight_start,
-                          int highlight_len);
+  enum { L_ERR, L_WARN } level;
+} csq_error;
 
-void print_error(const error_info *err);
+csq_error *new_error(error_type type, const char *filename, int line);
+void set_col(csq_error *e, int col);
+void add_note(csq_error *e, const char *note);
+void print_error(csq_error *e);
+void free_error(csq_error *e);
 
-// Instead of using an error_info object, simply throw the error directly.
-//
-// Less parameters and hassle, no object. Used for miscellaneous errors or
-// errors that don't need more than a message and a location, normally
-// internal errors.
-void simple_error(const char *msg, int line, const char *file, error_type type,
-                  error_level level);
-
-// Same as simple_error, but automatically exits with code 1.
-void simple_fatal(const char *msg, int line, const char *file, error_type type,
-                  error_level level);
+#define quick_error(TYPE, LEVEL)                                               \
+  e = new_error(TYPE, __FILE__, __LINE__);                                     \
+  e->level = LEVEL;
 
 #endif

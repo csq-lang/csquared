@@ -1,87 +1,70 @@
 #include "csquare/error.h"
+#include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 
-#include "csquare/error.h"
-#include <string.h>
+#define E(NAME, STR) STR,
 
-error_info new_error_info(const char *msg, error_type type, error_level level,
-                          const char *file, int line, int col,
-                          const char *line_str, int highlight_start,
-                          int highlight_len) {
-  error_info e;
-  e.message = strdup(msg);
-  e.type = type;
-  e.level = level;
-  e.file = file;
-  e.pos = (file_pos){line, col};
+const char *error_type_str[] = {ERROR_NAMES};
 
-  e.line.ptr = line_str;
+#undef E
 
-  size_t line_len = 0;
-  while (line_str[line_len] && line_str[line_len] != '\n')
-    line_len++;
-  e.line.len = line_len;
+csq_error *new_error(error_type type, const char *filename, int line) {
+  csq_error *e = malloc(sizeof(csq_error));
 
-  e.highlight.ptr = line_str + highlight_start;
-  e.highlight.len = highlight_len;
+  e->type = type;
+  e->filename = filename;
+  e->line = line;
+
+  e->col = 0;
+  e->has_col = false;
+
+  e->note_count = 0;
+  e->note_cap = 8;
+  e->notes = malloc(sizeof(char *) * e->note_cap);
+
+  e->level = L_ERR;
 
   return e;
 }
 
-#define CRED "\x1b[31m"
-#define CYELLOW "\x1b[33m"
-#define CCYAN "\x1b[36m"
-#define CBLUE "\x1b[34m"
-#define CRESET "\x1b[0m"
+void set_col(csq_error *e, int col) {
+  e->col = col;
+  e->has_col = true;
+}
 
-// static void print_span(const char *ptr, size_t len) {
-//   fwrite(ptr, 1, len, stdout);
-// }
+void add_note(csq_error *e, const char *note) {
+  if (e->note_count >= e->note_cap) {
+    e->note_cap *= 2;
+    e->notes = realloc(e->notes, sizeof(char *) * e->note_cap);
+  }
 
-void print_error(const error_info *e) {
-  const char *level_color = (e->level == ERROR_LEVEL_ERROR) ? CRED : CYELLOW;
+  e->notes[e->note_count++] = (char *)note;
+}
 
-  printf("%s%s:%s %s\n", level_color,
-         (e->level == ERROR_LEVEL_ERROR ? "error" : "warning"), CRESET,
-         e->message);
-  printf("  --> %s:%d:%d\n", e->file, e->pos.line, e->pos.col);
-  printf("   |\n");
+void free_error(csq_error *e) {
+  if (!e)
+    return;
 
-  printf("%4d | ", e->pos.line);
+  if (e->notes) {
+    for (size_t i = 0; i < e->note_count; i++)
+      free(e->notes[i]);
+  }
 
-  fwrite(e->line.ptr, 1, e->highlight.ptr - e->line.ptr, stdout);
+  free(e);
+}
 
-  printf(CRED);
-  fwrite(e->highlight.ptr, 1, e->highlight.len, stdout);
-  printf(CRESET);
+void print_error(csq_error *e) {
+  const char *prefix = e->level == L_ERR ? "\x1b[31merror" : "\x1b[33mwarning";
 
-  size_t rest_len =
-      e->line.len - (e->highlight.ptr - e->line.ptr) - e->highlight.len;
-  fwrite(e->highlight.ptr + e->highlight.len, 1, rest_len, stdout);
+  printf("%s\x1b[0m: %s\n", prefix, error_type_str[e->type]);
+
+  printf("\t\x1b[1m%s:%d", e->filename, e->line);
+  if (e->has_col)
+    printf(":%d", e->col);
   printf("\n");
 
-  printf("     | ");
-  for (size_t i = 0; i < e->highlight.ptr - e->line.ptr; i++)
-    putchar((e->line.ptr[i] == '\t') ? '\t' : ' ');
-  printf(CRED);
-  for (size_t i = 0; i < e->highlight.len; i++)
-    putchar('^');
-  printf(CRESET "\n");
-}
-
-void simple_error(const char *msg, int line, const char *file, error_type type,
-                  error_level level) {
-  const char *level_color = (level == ERROR_LEVEL_ERROR) ? CRED : CYELLOW;
-
-  printf("%s%s:%s %s\n", level_color,
-         (level == ERROR_LEVEL_ERROR ? "error" : "warning"), CRESET, msg);
-  printf("  --> %s:%d\n", file, line);
-}
-
-void simple_fatal(const char *msg, int line, const char *file, error_type type,
-                  error_level level) {
-  simple_error(msg, line, file, type, level);
-  exit(1);
+  for (size_t i = 0; i < e->note_count; i++) {
+    printf("\t\x1b[32mnote\x1b[0m: %s\n", e->notes[i]);
+  }
 }
