@@ -10,7 +10,8 @@
   E(E_UNTERMINATED_STRING, "unterminated string")                              \
   E(E_UNEXPECTED_TOKEN, "unexpected token")                                    \
   E(E_PEEK_OUT_OF_BOUNDS, "peek out of bounds")                                \
-  E(E_NULLPTR, "null pointer")
+  E(E_NULLPTR, "null pointer")                                                 \
+  E(E_ARENA_ALLOC_FAIL, "arena allocation failed")
 
 typedef enum { ERROR_NAMES E__COUNT } error_type;
 
