@@ -1,32 +1,61 @@
+# =============================
+# Makefile for C² Compiler
+# Supports normal and test builds
+# =============================
+
 include config.mk
 
-.PHONY: all clean directories rebuild
+.PHONY: all clean rebuild info directories
 
-# Default target
+# -----------------------------
+# Build targets
+# -----------------------------
 all: directories $(TARGET)
 
 rebuild: clean all
 
-directories:
-	@mkdir -p $(BUILDDIR) $(BINDIR) $(shell find $(SRCDIR) -type d | sed 's/$(SRCDIR)/$(BUILDDIR)/')
-
-# Target executable
+# Normal build
 $(TARGET): $(OBJS)
 	@echo "Linking $(TARGET)"
-	$(CC) $(CFLAGS) $(OBJS) -o $@ $(LDFLAGS)
+	$(CC) $(CFLAGS) $(OBJS) -o $(BINDIR)/$(TARGET) $(LDFLAGS)
 
-# Object files from C source files
+# test build with tests
+TEST_TARGET := csq-x86-test
+TEST_OBJS := $(patsubst $(SRCDIR)/%.c,$(BUILDDIR)/%_test.o,$(SRCS))
+
+$(TEST_TARGET): directories $(TEST_OBJS)
+	@echo "Linking test binary $(BINDIR)/$(TEST_TARGET)"
+	$(CC) $(CFLAGS) $(TEST_OBJS) -o $(BINDIR)/$(TEST_TARGET) $(LDFLAGS)
+
+# -----------------------------
+# Compile source files
+# -----------------------------
 $(BUILDDIR)/%.o: $(SRCDIR)/%.c
 	@echo "Compiling $<"
 	@mkdir -p $(dir $@)
 	$(CC) $(CFLAGS) -c $< -o $@
 
-# Clean build artifacts
+$(BUILDDIR)/%_test.o: $(SRCDIR)/%.c
+	@echo "Compiling test $<"
+	@mkdir -p $(dir $@)
+	$(CC) $(CFLAGS) -DCSQ_RUN_TESTS -c $< -o $@
+
+# -----------------------------
+# Token/Directory management
+# -----------------------------
+directories:
+	@mkdir -p $(BUILDDIR) $(BINDIR) $(shell find $(SRCDIR) -type d | sed 's|$(SRCDIR)|$(BUILDDIR)|')
+
+# -----------------------------
+# Cleaning
+# -----------------------------
 clean:
 	@echo "Cleaning build artifacts"
 	@rm -rf $(BUILDDIR) $(BINDIR)
 
-# Print Makefile information
+# -----------------------------
+# test info
+# -----------------------------
 info:
 	@echo "C² Build Configuration:"
 	@echo "  Compiler:   $(CC)"
@@ -36,5 +65,7 @@ info:
 	@echo "  Build dir:  $(BUILDDIR)"
 	@echo "  Binary dir: $(BINDIR)"
 	@echo "  Target:     $(TARGET)"
+	@echo "  test Target: $(TEST_TARGET)"
 	@echo "  Sources:    $(SRCS)"
 	@echo "  Objects:    $(OBJS)"
+	@echo "  test Objects: $(TEST_OBJS)"

@@ -3,27 +3,10 @@ CC := gcc
 CFLAGS := -std=c23 -Wall -Wextra -pedantic -Iinclude -D_GNU_SOURCE
 LDFLAGS :=
 
-TARGET := csq-x86
+SRCDIR = src
+BUILDDIR = build
+BINDIR = bin
 
-# Directories
-SRCDIR := src
-INCDIR := include
-BUILDDIR := build
-BINDIR := bin
-
-# Build type: debug (default) or release
-# Usage: make BUILD_TYPE=release
-BUILD_TYPE ?= debug
-
-ifeq ($(BUILD_TYPE),release)
-    CFLAGS += -O2 -DNDEBUG
-else
-    CFLAGS += -g -O0 -DDEBUG
-endif
-
-# Source files (automatically find all .c files in src directory)
-SRCS := $(shell find $(SRCDIR) -name "*.c")
-OBJS := $(patsubst $(SRCDIR)/%.c, $(BUILDDIR)/%.o, $(SRCS))
-
-# Target binary path
-TARGET := $(BINDIR)/$(TARGET)
+TARGET = csq-x86
+SRCS = $(shell find $(SRCDIR) -name '*.c')
+OBJS = $(patsubst $(SRCDIR)/%.c,$(BUILDDIR)/%.o,$(SRCS))

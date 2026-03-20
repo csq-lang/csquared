@@ -12,7 +12,7 @@ typedef struct {
   bool show_help;
 } csq_options;
 
-typedef void (*opt_func_t)(csq_options* opts, const char* arg);
+typedef void (*opt_func_t)(csq_options *opts, const char *arg);
 
 typedef struct {
   const char *long_name;
@@ -21,7 +21,6 @@ typedef struct {
   size_t offset;
   opt_func_t func;
 } opt_map_t;
-
 
 csq_options *options_parse(int argc, char *argv[]);
 void options_free(csq_options *opts);

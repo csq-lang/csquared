@@ -34,11 +34,10 @@ token *lex_symbol(const char *p, int *len, int *line, int *col) {
     best_len = 1;
     best_type = T_ERROR;
     *len = best_len;
-    *col = (*col) + (*line);
     return NULL;
   }
 
   *len = best_len;
-  *col = (*col) + (*line);
+  *col = (*col) + (*len);
   return new_token(p, best_len, best_type, *line, *col - *len);
 }
