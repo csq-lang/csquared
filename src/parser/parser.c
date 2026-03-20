@@ -16,14 +16,9 @@ node *new_node(arena *a, node_type type, size_t size) {
   return n;
 }
 
-node *error_node(arena *a, const char *msg, error_type errtype, token *tk) {
+node *error_node(arena *a, const char *filename, int line, error_type errtype) {
   node *n = new_node(a, N_ERROR, sizeof(node));
-  n->errmsg = msg;
-  n->errtype = errtype;
-  n->line = tk->line;
-  n->col = tk->col;
-  n->start = tk->start;
-  n->length = tk->length;
+  n->e = new_error(errtype, filename, line);
   return n;
 }
 
@@ -76,30 +71,23 @@ token *current(parser *p) {
 
 void consume(parser *p, token_type tt) {
   if (!current(p)) {
-    simple_fatal("Current node is NULL", __LINE__, __FILE_NAME__,
-                 INERR_CURR_NODE_NULL, ERROR_LEVEL_ERROR);
+    csq_error *e;
+    quick_error(E_NULLPTR, L_ERR);
+    add_note(e, "current(p) when consuming");
+    print_error(e);
+    free_error(e);
+    free_parser(p);
+    exit(1);
   }
 
   if (current(p)->type != tt) {
     printf("\n");
-    token *tk = current(p);
-    size_t line_len;
-    const char *line = get_line(p->src, tk->line, &line_len);
-    if (!line) {
-      line = "";
-      line_len = 0;
-    }
 
-    int highlight_start = tk->start - line;
-    int highlight_len = tk->length;
-
-    char msg[512];
-    sprintf(msg, "unexpected token '%.*s', expected '%s'", tk->length,
-            tk->start, token_type_str[tt]);
-    error_info e = new_error_info(
-        msg, SYNERR_UNEXPECTED_TOKEN, ERROR_LEVEL_ERROR, p->filename, tk->line,
-        tk->col, line, highlight_start, highlight_len);
-    print_error(&e);
+    csq_error *e;
+    quick_error(E_UNEXPECTED_TOKEN, L_ERR);
+    print_error(e);
+    free_error(e);
+    free_parser(p);
     exit(1);
   }
 
@@ -107,20 +95,33 @@ void consume(parser *p, token_type tt) {
 }
 
 token *advance(parser *p) {
-  if (!p || !p->tokens || p->index >= p->tokens->count)
-    simple_fatal("couldn't advance because parser is NULL, tokens are NULL or "
-                 "parser index is out of bounds.",
-                 __LINE__, __FILE_NAME__, INERR_NULL_PTR, ERROR_LEVEL_ERROR);
+  if (!p || !p->tokens || p->index >= p->tokens->count) {
+    csq_error *e;
+    quick_error(E_NULLPTR, L_ERR);
+    const char *note = "couldn't advance";
+    if (!p)
+      note = "couldn't advance; parser is null";
+    else if (!p->tokens)
+      note = "couldn't advance; parser's tokens are null";
+    else if (p->index >= p->tokens->count)
+      note = "couldn't advance; parser's index is out of bounds";
+    add_note(e, note);
+    print_error(e);
+    free_error(e);
+    free_parser(p);
+    exit(1);
+  }
   return p->tokens->tokens[p->index++];
 }
 
 token *peekn(parser *p, int n) {
-  if ((p->index + n >= p->tokens->count))
-    simple_fatal("tried to peek out of bounds", __LINE__, __FILE_NAME__,
-                 INERR_PEEK_OOB, ERROR_LEVEL_ERROR);
-  if (current(p)->type == T_EOF)
-    simple_fatal("tried to peek at the end of file", __LINE__, __FILE_NAME__,
-                 INERR_PEEK_OOB, ERROR_LEVEL_ERROR);
+  if ((p->index + n >= p->tokens->count) || current(p)->type == T_EOF) {
+    csq_error *e;
+    quick_error(E_PEEK_OUT_OF_BOUNDS, L_ERR);
+    print_error(e);
+    free_parser(p);
+    exit(1);
+  }
 
   token *tk = p->tokens->tokens[p->index + n];
   return tk;
@@ -131,19 +132,22 @@ token *peek(parser *p) { return peekn(p, 1); }
 int match(parser *p, token_type tt) { return current(p)->type == tt; }
 
 void parse(parser *p) {
-  if (!p) {
-    simple_fatal("parser pointer is NULL", __LINE__, __FILE__, INERR_NULL_PTR,
-                 ERROR_LEVEL_ERROR);
-  }
-
-  if (!p->tokens || p->tokens->count == 0 || !p->tokens->tokens) {
-    simple_fatal("parser has no tokens", __LINE__, __FILE__, INERR_NULL_PTR,
-                 ERROR_LEVEL_ERROR);
-  }
-
-  if (!p->node_arena) {
-    simple_fatal("parser has no node arena", __LINE__, __FILE__, INERR_NULL_PTR,
-                 ERROR_LEVEL_ERROR);
+  if (!p || (!p->tokens || p->tokens->count == 0 || !p->tokens->tokens) ||
+      !p->node_arena) {
+    csq_error *e;
+    quick_error(E_NULLPTR, L_ERR);
+    const char *note = "?"; // lol
+    if (!p)
+      note = "couldn't parse; parser is null";
+    else if (!p->tokens || p->tokens->count == 0 || !p->tokens->tokens)
+      note = "couldn't parse; no tokens";
+    else if (!p->node_arena)
+      note = "couldn't parse; parser's node arena is null";
+    add_note(e, note);
+    print_error(e);
+    free_error(e);
+    free_parser(p);
+    exit(1);
   }
 
   program_node *prog =

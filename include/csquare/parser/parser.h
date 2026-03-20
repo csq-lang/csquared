@@ -31,12 +31,7 @@ extern const char *node_type_str[];
 typedef struct {
   node_type type;
 
-  const char *errmsg;
-  error_type errtype;
-  int line;
-  int col;
-  const char *start;
-  int length;
+  csq_error *e;
 } node;
 
 typedef struct {
@@ -91,7 +86,7 @@ typedef struct {
 } parser;
 
 node *new_node(arena *a, node_type type, size_t size);
-node *error_node(arena *a, const char *msg, error_type errtype, token *tk);
+node *error_node(arena *a, const char *filename, int line, error_type errtype);
 void add_node(parser *p, node *n);
 void add_new_node(parser *p, node_type type, size_t size);
 
