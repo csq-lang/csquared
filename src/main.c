@@ -2,8 +2,8 @@
 #include "csquare/lexer/lexer.h"
 #include "csquare/opt-common.h"
 #include "csquare/parser/parser.h"
-#include "csquare/utils.h"
 #include "csquare/tests/tests.h"
+#include "csquare/utils.h"
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -26,33 +26,15 @@ int main(int argc, char *argv[]) {
   if (!src)
     return EXIT_FAILURE;
 
-  token_list *lexed = lex(src);
+  token_list *lexed = lex(filename, src);
 
   for (size_t i = 0; i < lexed->count; i++) {
     token *tk = lexed->tokens[i];
     // print_token(tk);
     if (tk->type == T_ERROR) {
-      printf("\n");
-      size_t line_len;
-      const char *line = get_line(src, tk->line, &line_len);
-      if (!line) {
-        line = "";
-        line_len = 0;
-      }
-
-      int highlight_start = tk->start - line;
-      int highlight_len = tk->length;
-
-      error_info e = new_error_info(tk->errmsg, tk->errtype, ERROR_LEVEL_ERROR,
-                                    filename, tk->line, tk->col, line,
-                                    highlight_start, highlight_len);
-      print_error(&e);
+      print_error(tk->e);
     }
-
-    free_token_list(lexed);
-    free(src);
   }
-#endif
 
   parser *p = new_parser(lexed, filename, src);
   // parse(p);
@@ -61,4 +43,5 @@ int main(int argc, char *argv[]) {
   free_parser(p);
   free(src);
   return 0;
+#endif
 }
