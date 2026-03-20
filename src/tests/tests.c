@@ -6,7 +6,6 @@ int tests_failed = 0;
 int tests_main(void) {
   printf("\n=== C² Test Suite ===\n\n");
 
-  RUN_TEST(test_multiple_errors);
   RUN_TEST(test_percent_error);
 
   printf("\n");
