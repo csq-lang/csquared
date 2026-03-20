@@ -1,5 +1,6 @@
 #include "csquare/error.h"
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 #include "csquare/error.h"
@@ -68,4 +69,19 @@ void print_error(const error_info *e) {
   for (size_t i = 0; i < e->highlight.len; i++)
     putchar('^');
   printf(CRESET "\n");
+}
+
+void simple_error(const char *msg, int line, const char *file, error_type type,
+                  error_level level) {
+  const char *level_color = (level == ERROR_LEVEL_ERROR) ? CRED : CYELLOW;
+
+  printf("%s%s:%s %s\n", level_color,
+         (level == ERROR_LEVEL_ERROR ? "error" : "warning"), CRESET, msg);
+  printf("  --> %s:%d\n", file, line);
+}
+
+void simple_fatal(const char *msg, int line, const char *file, error_type type,
+                  error_level level) {
+  simple_error(msg, line, file, type, level);
+  exit(1);
 }

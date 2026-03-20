@@ -1,6 +1,6 @@
 # Configuration for C² project
 CC := gcc
-CFLAGS := -std=gnu99 -Wall -Wextra -pedantic -Iinclude -D_GNU_SOURCE
+CFLAGS := -std=c23 -Wall -Wextra -pedantic -Iinclude -D_GNU_SOURCE
 LDFLAGS :=
 
 TARGET := csq-x86
