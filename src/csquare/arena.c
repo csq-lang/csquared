@@ -44,8 +44,6 @@ void *arena_alloc(arena *a, size_t size) {
   }
   void *ptr = a->mem + a->offset;
   if (!ptr) {
-    // simple_fatal("arena allocation returned null pointer", __LINE__,
-    //              __FILE_NAME__, INERR_ARENA_ALLOC_NULL, ERROR_LEVEL_ERROR);
     csq_error *e;
     quick_error(E_ARENA_ALLOC_FAIL, L_ERR);
     print_error(e);
