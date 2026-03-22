@@ -18,7 +18,10 @@ const struct {
 
 int symbol_count = sizeof(symbol_table) / sizeof(symbol_table[0]);
 
-token *lex_symbol(const char *p, int *len, int *line, int *col) {
+token *lex_symbol(const char *filename, const char *p, int *len, int *line,
+                  int *col) {
+  (void)filename;
+  (void)line;
   int best_len = 0;
   token_type best_type = T_ERROR;
 
@@ -39,5 +42,5 @@ token *lex_symbol(const char *p, int *len, int *line, int *col) {
 
   *len = best_len;
   *col = (*col) + (*len);
-  return new_token(p, best_len, best_type, *line, *col - *len);
+  return new_token(p, best_len, best_type);
 }

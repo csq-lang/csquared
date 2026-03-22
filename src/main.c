@@ -2,16 +2,16 @@
 #include "csquare/lexer/lexer.h"
 #include "csquare/opt-common.h"
 #include "csquare/parser/parser.h"
-#include "csquare/utils.h"
 #include "csquare/tests/tests.h"
+#include "csquare/utils.h"
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 
 int main(int argc, char *argv[]) {
-  csq_options *opts = options_parse(argc, argv);
-  if (!opts)
-    return EXIT_FAILURE;
+  // csq_options *opts = options_parse(argc, argv);
+  // if (!opts)
+  //   return EXIT_FAILURE;
 
 #ifdef CSQ_RUN_TESTS
   return tests_main();
@@ -26,39 +26,32 @@ int main(int argc, char *argv[]) {
   if (!src)
     return EXIT_FAILURE;
 
-  token_list *lexed = lex(src);
+  token_list *lexed = lex(filename, src);
+  bool found_errors = false;
 
   for (size_t i = 0; i < lexed->count; i++) {
     token *tk = lexed->tokens[i];
-    // print_token(tk);
     if (tk->type == T_ERROR) {
-      printf("\n");
-      size_t line_len;
-      const char *line = get_line(src, tk->line, &line_len);
-      if (!line) {
-        line = "";
-        line_len = 0;
-      }
-
-      int highlight_start = tk->start - line;
-      int highlight_len = tk->length;
-
-      error_info e = new_error_info(tk->errmsg, tk->errtype, ERROR_LEVEL_ERROR,
-                                    filename, tk->line, tk->col, line,
-                                    highlight_start, highlight_len);
-      print_error(&e);
+      // print_token(tk);
+      print_error(tk->e);
+      free_error(tk->e);
+      found_errors = true;
     }
-
-    free_token_list(lexed);
-    free(src);
   }
-#endif
+
+  if (found_errors)
+    return 1;
+  found_errors = false;
 
   parser *p = new_parser(lexed, filename, src);
   // parse(p);
+
+  for (size_t i = 0; i < E__COUNT; i++)
+    printf("Error %d: %s\n", (int)i, error_type_str[i]);
 
   free_token_list(lexed);
   free_parser(p);
   free(src);
   return 0;
+#endif
 }

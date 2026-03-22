@@ -8,8 +8,7 @@
 
 const char *token_type_str[T__COUNT] = {TOKEN_TYPES};
 
-token *new_token(const char *start, int length, token_type type, int line,
-                 int col) {
+token *new_token(const char *start, int length, token_type type) {
   token *tk = malloc(sizeof(token));
   if (!tk) {
     perror("malloc failed");
@@ -19,10 +18,6 @@ token *new_token(const char *start, int length, token_type type, int line,
   tk->start = start;
   tk->length = length;
   tk->type = type;
-  tk->line = line;
-  tk->col = col;
-  tk->errtype = ERROR_NONE;
-  tk->errmsg = "";
   return tk;
 }
 
@@ -34,11 +29,12 @@ void free_token(token *tk) {
   free(tk);
 }
 
-token *error_token(const char *msg, const char *src, int len, int line, int col,
+token *error_token(const char *filename, int line, int col,
                    error_type errtype) {
-  token *tk = new_token(src, len, T_ERROR, line, col);
-  tk->errtype = errtype;
-  tk->errmsg = msg;
+  token *tk = new_token("", 1, T_ERROR);
+  tk->e = new_error(errtype, filename, line);
+  set_col(tk->e, col);
+  tk->e->level = L_ERR;
   return tk;
 }
 
@@ -69,7 +65,7 @@ void add_token(token_list *l, token *tok) {
   l->tokens[l->count++] = tok;
 }
 
-token_list *lex(const char *src) {
+token_list *lex(const char *filename, const char *src) {
   token_list *list = malloc(sizeof(token_list));
   init_token_list(list);
 
@@ -108,39 +104,39 @@ token_list *lex(const char *src) {
     }
 
     int consumed = 0;
-    const char *msg = "unknown character \x1b[32m'%c'\x1b[0m";
-    char buf[32];
-    sprintf(buf, msg, c);
     token *tk;
-    token *errtk =
-        error_token(strdup(buf), p, 1, line, col - 1, SYNERR_UNKNOWN_CHARACTER);
+    token *errtk = error_token(filename, line, col, E_UNKNOWN_CHARACTER);
+    errtk->start = p;
+    char msg[64];
+    sprintf(msg, "unrecognized char is \x1b[33m'%c'\x1b[0m", c);
+    add_note(errtk->e, strdup(msg));
 
     if (isdigit(c)) {
-      tk = lex_digit(p, &consumed, &line, &col);
+      tk = lex_digit(filename, p, &consumed, &line, &col);
     } else if (isalpha(c) || c == '_') {
-      tk = lex_ident(p, &consumed, &line, &col);
+      tk = lex_ident(filename, p, &consumed, &line, &col);
     } else if (c == '"' || c == '\'') {
-      tk = lex_string(p, &consumed, &line, &col);
+      tk = lex_string(filename, p, &consumed, &line, &col);
     } else {
-      tk = lex_symbol(p, &consumed, &line, &col);
+      tk = lex_symbol(filename, p, &consumed, &line, &col);
     }
-    if (!tk)
+    if (tk == NULL)
       tk = errtk;
 
     p += consumed;
     add_token(list, tk);
   }
 
-  add_token(list, new_token(p, 0, T_EOF, line, col));
+  add_token(list, new_token(p, 0, T_EOF));
   return list;
 }
 
 void print_token(token *tk) {
   const char *type_color = "\x1b[32m";
-  int print_errmsg = 0;
+  int print_err = 0;
   if (tk->type == T_ERROR) {
     type_color = "\x1b[31m";
-    print_errmsg = 1;
+    print_err = 1;
   }
 
   printf("Text: \x1b[33m");
@@ -154,8 +150,9 @@ void print_token(token *tk) {
   }
 
   printf("\x1b[0m, Type: %s%s\x1b[0m", type_color, token_type_str[tk->type]);
-  if (print_errmsg) {
-    printf(", Error message: \x1b[31m%s\x1b[0m", tk->errmsg);
+  if (print_err) {
+    printf(", Error message: \x1b[31m%s\x1b[0m", error_type_str[tk->e->type]);
+    printf(", Error kind: \x1b[031m%d\x1b[0m", tk->e->type);
   }
   printf("\n");
 }

@@ -97,19 +97,14 @@ struct token {
   int length;
   token_type type;
 
-  int line;
-  int col;
-  error_type errtype;
-  const char *errmsg;
+  csq_error *e;
 };
 
 typedef struct token token;
 
-token *new_token(const char *start, int length, token_type type, int line,
-                 int col);
+token *new_token(const char *start, int length, token_type type);
 void free_token(token *tk);
-token *error_token(const char *msg, const char *src, int len, int line, int col,
-                   error_type errtype);
+token *error_token(const char *filename, int line, int col, error_type errtype);
 
 typedef struct {
   token **tokens;
@@ -125,13 +120,14 @@ void add_token(token_list *list, token *tk);
 #define isdigit(c) (c >= '0' && c <= '9')
 #define isalpha(c) ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z'))
 
-#define LEX_FUNC_ARGS const char *p, int *len, int *line, int *col
+#define LEX_FUNC_ARGS                                                          \
+  const char *filename, const char *p, int *len, int *line, int *col
 token *lex_symbol(LEX_FUNC_ARGS);
 token *lex_digit(LEX_FUNC_ARGS);
 token *lex_string(LEX_FUNC_ARGS);
 token *lex_ident(LEX_FUNC_ARGS);
 #undef LEX_FUNC_ARGS
-token_list *lex(const char *src);
+token_list *lex(const char *filename, const char *src);
 
 void print_token(token *tk);
 

@@ -1,7 +1,10 @@
 #include "csquare/lexer/lexer.h"
 #include <stdbool.h>
 
-token *lex_digit(const char *p, int *len, int *line, int *col) {
+token *lex_digit(const char *filename, const char *p, int *len, int *line,
+                 int *col) {
+  (void)filename;
+  (void)line;
   const char *start = p;
   token_type type = T_DECIMAL;
   bool has_dot = false;
@@ -43,5 +46,5 @@ token *lex_digit(const char *p, int *len, int *line, int *col) {
 
   *len = (int)(p - start);
   *col = (*col) + (*len);
-  return new_token(start, *len, type, *line, *col - *len);
+  return new_token(start, *len, type);
 }
