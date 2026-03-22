@@ -32,7 +32,7 @@ int main(int argc, char *argv[]) {
   for (size_t i = 0; i < lexed->count; i++) {
     token *tk = lexed->tokens[i];
     if (tk->type == T_ERROR) {
-      print_token(tk);
+      // print_token(tk);
       print_error(tk->e);
       free_error(tk->e);
       found_errors = true;
