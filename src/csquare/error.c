@@ -4,10 +4,7 @@
 #include <stdlib.h>
 
 #define E(NAME, STR) STR,
-
 const char *error_type_str[] = {ERROR_NAMES};
-
-#undef E
 
 csq_error *new_error(error_type type, const char *filename, int line) {
   csq_error *e = malloc(sizeof(csq_error));
@@ -15,6 +12,15 @@ csq_error *new_error(error_type type, const char *filename, int line) {
   e->type = type;
   e->filename = filename;
   e->line = line;
+
+  e->col = 0;
+  e->has_col = false;
+
+  e->note_count = 0;
+  e->note_cap = 8;
+  e->notes = malloc(sizeof(char *) * e->note_cap);
+
+  e->level = L_ERR;
 
   e->col = 0;
   e->has_col = false;
@@ -59,12 +65,12 @@ void print_error(csq_error *e) {
 
   printf("%s\x1b[0m: %s\n", prefix, error_type_str[e->type]);
 
-  printf("\t\x1b[1m%s:%d", e->filename, e->line);
+  printf(" -> \x1b[1m%s:%d", e->filename, e->line);
   if (e->has_col)
     printf(":%d", e->col);
   printf("\n");
 
   for (size_t i = 0; i < e->note_count; i++) {
-    printf("\t\x1b[32mnote\x1b[0m: %s\n", e->notes[i]);
+    printf(" \x1b[32mnote\x1b[0m: %s\n", e->notes[i]);
   }
 }
