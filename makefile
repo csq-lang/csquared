@@ -1,50 +1,50 @@
 # =============================
 # Makefile for C² Compiler
-# Supports normal and test builds
 # =============================
 
 include config.mk
 
-.PHONY: all clean rebuild info directories
+.PHONY: all clean rebuild info test directories
 
 # -----------------------------
-# Build targets
+# Default target
 # -----------------------------
-all: directories $(TARGET)
+all: $(BINDIR)/$(TARGET)
 
 rebuild: clean all
 
-# Normal build
-$(TARGET): $(OBJS)
-	@echo "Linking $(TARGET)"
-	$(CC) $(CFLAGS) $(OBJS) -o $(BINDIR)/$(TARGET) $(LDFLAGS)
+# -----------------------------
+# Linking
+# -----------------------------
+$(BINDIR)/$(TARGET): $(OBJS)
+	@echo "Linking $@"
+	@mkdir -p $(dir $@)
+	$(CC) $(CFLAGS) $^ -o $@ $(LDFLAGS)
 
-# test build with tests
-TEST_TARGET := csq-x86-test
-TEST_OBJS := $(patsubst $(SRCDIR)/%.c,$(BUILDDIR)/%_test.o,$(SRCS))
-
-$(TEST_TARGET): directories $(TEST_OBJS)
-	@echo "Linking test binary $(BINDIR)/$(TEST_TARGET)"
-	$(CC) $(CFLAGS) $(TEST_OBJS) -o $(BINDIR)/$(TEST_TARGET) $(LDFLAGS)
+$(BINDIR)/$(TEST_TARGET): $(TEST_OBJS)
+	@echo "Linking test binary $@"
+	@mkdir -p $(dir $@)
+	$(CC) $(CFLAGS) $^ -o $@ $(LDFLAGS)
 
 # -----------------------------
-# Compile source files
+# Compilation
 # -----------------------------
 $(BUILDDIR)/%.o: $(SRCDIR)/%.c
 	@echo "Compiling $<"
 	@mkdir -p $(dir $@)
-	$(CC) $(CFLAGS) -c $< -o $@
+	$(CC) $(CFLAGS) -MMD -MP -c $< -o $@
 
 $(BUILDDIR)/%_test.o: $(SRCDIR)/%.c
 	@echo "Compiling test $<"
 	@mkdir -p $(dir $@)
-	$(CC) $(CFLAGS) -DCSQ_RUN_TESTS -c $< -o $@
+	$(CC) $(CFLAGS) -DCSQ_RUN_TESTS -MMD -MP -c $< -o $@
 
 # -----------------------------
-# Token/Directory management
+# Test target
 # -----------------------------
-directories:
-	@mkdir -p $(BUILDDIR) $(BINDIR) $(shell find $(SRCDIR) -type d | sed 's|$(SRCDIR)|$(BUILDDIR)|')
+test: $(BINDIR)/$(TEST_TARGET)
+	@echo "Running tests..."
+	@./$(BINDIR)/$(TEST_TARGET)
 
 # -----------------------------
 # Cleaning
@@ -54,18 +54,16 @@ clean:
 	@rm -rf $(BUILDDIR) $(BINDIR)
 
 # -----------------------------
-# test info
+# Info
 # -----------------------------
 info:
-	@echo "C² Build Configuration:"
-	@echo "  Compiler:   $(CC)"
-	@echo "  CFLAGS:     $(CFLAGS)"
-	@echo "  LDFLAGS:    $(LDFLAGS)"
-	@echo "  Source dir: $(SRCDIR)"
-	@echo "  Build dir:  $(BUILDDIR)"
-	@echo "  Binary dir: $(BINDIR)"
-	@echo "  Target:     $(TARGET)"
-	@echo "  test Target: $(TEST_TARGET)"
-	@echo "  Sources:    $(SRCS)"
-	@echo "  Objects:    $(OBJS)"
-	@echo "  test Objects: $(TEST_OBJS)"
+	@echo "Build mode: $(BUILD)"
+	@echo "Compiler:   $(CC)"
+	@echo "CFLAGS:     $(CFLAGS)"
+	@echo "Sources:    $(SRCS)"
+
+# -----------------------------
+# Dependency inclusion
+# -----------------------------
+-include $(DEPS)
+-include $(TEST_DEPS)
