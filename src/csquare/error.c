@@ -22,6 +22,15 @@ csq_error *new_error(error_type type, const char *filename, int line) {
 
   e->level = L_ERR;
 
+  e->col = 0;
+  e->has_col = false;
+
+  e->note_count = 0;
+  e->note_cap = 8;
+  e->notes = malloc(sizeof(char *) * e->note_cap);
+
+  e->level = L_ERR;
+
   return e;
 }
 
