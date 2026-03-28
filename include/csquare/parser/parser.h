@@ -28,48 +28,55 @@ typedef enum { NODE_TYPES N__COUNT } node_type;
 
 extern const char *node_type_str[];
 
-typedef struct {
+typedef struct node node;
+
+struct node {
   node_type type;
 
   csq_error *e;
-} node;
 
-typedef struct {
-  node base;
-  node **items;
-  size_t count;
-  size_t cap;
-} program_node;
+  union {
+    int int_lit;
+    unsigned uint_lit;
+    float float_lit;
+    double double_lit;
+    _Float128 quad_lit;
+    const char *str_lit;
+    const char *ident;
 
-typedef struct {
-  node base;
-  node *type;
-  const char *name;
-  node *init;
-} var_decl_node;
+    struct {
+      node **items;
+      size_t count;
+      size_t cap;
+    } program;
 
-typedef struct {
-  node base;
-  node **items;
-  size_t count;
-} block_node;
+    struct {
+      node *type;
+      const char *name;
+      node *init;
+    } var_decl;
 
-typedef struct {
-  node base;
-  const char *name;
-  node **params;
-  size_t param_count;
-  block_node *body;
-} func_decl_node;
+    struct {
+      node **items;
+      size_t count;
+    } block;
 
-typedef struct {
-  node base;
-  node *cond;
-  node *then;
-  node **elif_branches;
-  size_t elif_count;
-  node *else_branch;
-} if_node;
+    struct {
+      const char *name;
+      node **params;
+      size_t param_count;
+      node *body;
+    } func_decl;
+
+    struct {
+      node *cond;
+      node *then;
+      node **elif_branches;
+      size_t elif_count;
+      node *else_branch;
+    } if_stmt;
+  };
+};
 
 typedef struct {
   arena *node_arena;
@@ -85,10 +92,10 @@ typedef struct {
   const char *filename;
 } parser;
 
-node *new_node(arena *a, node_type type, size_t size);
+node *new_node(arena *a, node_type type);
 node *error_node(arena *a, const char *filename, int line, error_type errtype);
 void add_node(parser *p, node *n);
-void add_new_node(parser *p, node_type type, size_t size);
+void add_new_node(parser *p, node_type type);
 
 parser *new_parser(token_list *tokens, const char *filename, const char *src);
 void free_parser(parser *p);
@@ -99,6 +106,8 @@ token *advance(parser *p);
 token *peek(parser *p);
 token *peekn(parser *p, int n);
 int match(parser *p, token_type tt);
+
+node *parse_declaration(parser *p);
 
 void parse(parser *p);
 

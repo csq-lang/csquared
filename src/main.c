@@ -1,12 +1,15 @@
+#ifdef CSQ_RUN_TESTS
+#include "csquare/tests/tests.h"
+#else
 #include "csquare/error.h"
 #include "csquare/lexer/lexer.h"
-#include "csquare/opt-common.h"
+// #include "csquare/opt-common.h"
 #include "csquare/parser/parser.h"
-#include "csquare/tests/tests.h"
 #include "csquare/utils.h"
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
+#endif
 
 int main(int argc, char *argv[]) {
   // csq_options *opts = options_parse(argc, argv);
@@ -44,10 +47,8 @@ int main(int argc, char *argv[]) {
   found_errors = false;
 
   parser *p = new_parser(lexed, filename, src);
-  // parse(p);
-
-  for (size_t i = 0; i < E__COUNT; i++)
-    printf("Error %d: %s\n", (int)i, error_type_str[i]);
+  parse(p);
+  printf("\x1b[32mSuccesfully parsed %s\x1b[0m\n", filename);
 
   free_token_list(lexed);
   free_parser(p);

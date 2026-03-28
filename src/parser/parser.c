@@ -3,21 +3,21 @@
 #include "csquare/error.h"
 #include "csquare/lexer/lexer.h"
 // #include "csquare/parser/rules/statements.h"
-#include "csquare/utils.h"
+// #include "csquare/utils.h"
 #include <stdio.h>
 #include <stdlib.h>
 
 #define N(NAME, STR) STR,
 const char *node_type_str[] = {NODE_TYPES};
 
-node *new_node(arena *a, node_type type, size_t size) {
-  node *n = arena_alloc(a, size);
+node *new_node(arena *a, node_type type) {
+  node *n = arena_alloc(a, sizeof(node));
   n->type = type;
   return n;
 }
 
 node *error_node(arena *a, const char *filename, int line, error_type errtype) {
-  node *n = new_node(a, N_ERROR, sizeof(node));
+  node *n = new_node(a, N_ERROR);
   n->e = new_error(errtype, filename, line);
   return n;
 }
@@ -31,8 +31,8 @@ void add_node(parser *p, node *n) {
   p->nodes[p->node_count++] = n;
 }
 
-void add_new_node(parser *p, node_type type, size_t size) {
-  node *n = new_node(p->node_arena, type, size);
+void add_new_node(parser *p, node_type type) {
+  node *n = new_node(p->node_arena, type);
   add_node(p, n);
 }
 
@@ -150,11 +150,11 @@ void parse(parser *p) {
     exit(1);
   }
 
-  program_node *prog =
-      (program_node *)new_node(p->node_arena, N_PROGRAM, sizeof(program_node));
-  prog->count = 0;
-  prog->cap = 8;
-  prog->items = arena_alloc(p->node_arena, sizeof(node *) * prog->cap);
+  node *prog = new_node(p->node_arena, N_PROGRAM);
+  prog->program.count = 0;
+  prog->program.cap = 8;
+  prog->program.items =
+      arena_alloc(p->node_arena, sizeof(node *) * prog->program.cap);
 
   // clang-format off
   // TODO: parse_statement doesn't have any references
@@ -177,7 +177,7 @@ void parse(parser *p) {
   add_node(p, (node *)prog);
 }
 
-static void print_tabs(int indent) {
-  for (int i = 0; i < indent; i++)
-    printf("\t");
-}
+// static void print_tabs(int indent) {
+//   for (int i = 0; i < indent; i++)
+//     printf("\t");
+// }
